@@ -1,7 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PanLib", "fs\PanLib.fsproj", "{70C2822E-4DD3-4031-B017-B43BB35EBB1E}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{74B89584-C114-4BA0-B727-E073F78621B9}"
 	ProjectSection(SolutionItems) = preProject
 		..\ThinkGraphics.htm = ..\ThinkGraphics.htm
@@ -12,16 +10,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PanBrowser2", "PanBrowser2\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helpers", "Helpers\Helpers.csproj", "{4EE13A68-D74E-4A80-87FC-D81AD71B4A26}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PanBrowser", "PanBrowser.csproj", "{85B69920-7019-418C-B901-8AEC16D1E275}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PanLib", "PanLib\PanLib.fsproj", "{70C2822E-4DD3-4031-B017-B43BB35EBB1E}"
 EndProject
 Global
 	GlobalSection(SourceCodeControl) = preSolution
 		SccNumberOfProjects = 1
-		SccProjectUniqueName0 = fs\\PanLib.fsproj
+		SccProjectUniqueName0 = PanLib\\PanLib.fsproj
 		SccProjectName0 = \u0022$/PanBrowser\u0022,\u0020BAAAAAAA
 		SccLocalPath0 = .
 		SccProvider0 = MSSCCI:Microsoft\u0020Visual\u0020SourceSafe
-		SccProjectFilePathRelativizedFromConnection0 = fs\\
+		SccProjectFilePathRelativizedFromConnection0 = PanLib\\
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,16 +30,6 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Release|Win32.ActiveCfg = Release|Any CPU
 		{711885B3-60C4-440F-966A-65386D052270}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{711885B3-60C4-440F-966A-65386D052270}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{711885B3-60C4-440F-966A-65386D052270}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -62,14 +50,16 @@ Global
 		{4EE13A68-D74E-4A80-87FC-D81AD71B4A26}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{4EE13A68-D74E-4A80-87FC-D81AD71B4A26}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{4EE13A68-D74E-4A80-87FC-D81AD71B4A26}.Release|Win32.ActiveCfg = Release|Any CPU
-		{85B69920-7019-418C-B901-8AEC16D1E275}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{85B69920-7019-418C-B901-8AEC16D1E275}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{85B69920-7019-418C-B901-8AEC16D1E275}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{85B69920-7019-418C-B901-8AEC16D1E275}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{85B69920-7019-418C-B901-8AEC16D1E275}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{85B69920-7019-418C-B901-8AEC16D1E275}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{85B69920-7019-418C-B901-8AEC16D1E275}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{85B69920-7019-418C-B901-8AEC16D1E275}.Release|Win32.ActiveCfg = Release|Any CPU
+		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Release|Win32.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
