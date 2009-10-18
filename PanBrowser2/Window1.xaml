@@ -1,17 +1,50 @@
 ﻿<Window x:Class="Terry.PanBrowser"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:c="clr-namespace:Terry"
     Title="Terry's PanBrowser" Height="400" Width="700" Loaded="Window_Loaded" SizeChanged="Window_SizeChanged">
+    
     <Window.Resources>
-        <DataTemplate x:Key="SliderTemplate">
+
+        <DataTemplate DataType="{x:Type c:SliderInt}">
             <StackPanel HorizontalAlignment="Stretch" Orientation="Horizontal">
-                <Label Content="{Binding Key}"></Label>
-                <Slider Width="100" Minimum="{Binding Value.from}" Maximum="{Binding Value.to}" Value="{Binding Value.val}" 
+                <Label Content="{Binding Name}"></Label>
+                <Slider Width="100" Minimum="{Binding From}" Maximum="{Binding To}" Value="{Binding Val}" 
                         HorizontalAlignment="Stretch" ValueChanged="Slider_ValueChanged"
                         SmallChange="1" LargeChange="5"/>
-                <Label Content="{Binding Value.val}"></Label>
+                <Label>
+                    <Label.Content>
+                        <Binding Path="Val" StringFormat="{}{0:F2}"/>
+                    </Label.Content>
+                </Label>
             </StackPanel>
         </DataTemplate>
+
+        <DataTemplate DataType="{x:Type c:SliderDouble}">
+            <StackPanel HorizontalAlignment="Stretch" Orientation="Horizontal">
+                <Label Content="{Binding Name}"></Label>
+                <Slider Width="100" Minimum="{Binding From}" Maximum="{Binding To}" Value="{Binding Val}" 
+                        HorizontalAlignment="Stretch" ValueChanged="Slider_ValueChanged"
+                        SmallChange="0.1" LargeChange="5"/>
+                <Label>
+                    <Label.Content>
+                        <Binding Path="Val" StringFormat="{}{0:F2}"/>
+                    </Label.Content>
+                </Label>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type c:SliderText}">
+            <StackPanel HorizontalAlignment="Stretch" Orientation="Horizontal">
+                <Label Content="{Binding Name}"></Label>
+                <TextBox TextChanged="TextBox_TextChanged">
+                    <TextBox.Text>
+                        <Binding Path="Val" UpdateSourceTrigger="PropertyChanged"/>
+                    </TextBox.Text>
+                </TextBox> 
+            </StackPanel>
+        </DataTemplate>
+
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -20,18 +53,25 @@
             <ColumnDefinition Width="478*" />
         </Grid.ColumnDefinitions>
         <StackPanel Name="designerPanel">
-            <ComboBox Height="23" Name="imageCombo1" Width="120" SelectionChanged="imageCombo1_SelectionChanged" />
-            <ComboBox Height="23" Name="transformCombo1" Width="120" SelectionChanged="transform1_SelectionChanged" />
+            <StackPanel Orientation="Horizontal">
+            <Label>Image:</Label>
+            <ComboBox Name="imageCombo1" HorizontalAlignment="Stretch" SelectionChanged="imageCombo1_SelectionChanged" />
+                </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>Transform:</Label>
+            <ComboBox Height="23" Name="transformCombo1" SelectionChanged="transform1_SelectionChanged" />
+            </StackPanel>
             <ListView Name="sliderList">
                 <ListView.View>
                     <GridView>
-                        <GridViewColumn Header="Params" CellTemplate="{StaticResource SliderTemplate}"/>
+                        <!-- <GridViewColumn Header="Controls" CellTemplate="{StaticResource SliderTemplate}"/> -->
+                        <GridViewColumn Header="Controls"/>
                     </GridView>
                 </ListView.View>
             </ListView>
         </StackPanel>
         <DockPanel Name="imagePanel" Grid.Column="2">
             <Image Name="bitmap" Stretch="Fill" Grid.Column="1" />
-            </DockPanel>
+        </DockPanel>
     </Grid>
 </Window>

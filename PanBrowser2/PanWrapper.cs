@@ -18,14 +18,14 @@ namespace Terry
 
         public List<string> Images { get; set; }
         public List<string> Transforms { get; set; }
-
+        protected readonly string None = "---none---";
 
         public PanWrapper()
         {
             GetPanFunctions();
             Images.Sort();
             Transforms.Sort();
-            Transforms.Insert(0, "--none--");
+            Transforms.Insert(0, None);
         }
 
         public void GetPanFunctions()
@@ -118,7 +118,6 @@ namespace Terry
 
         public IList<SliderAttribute> GetSliders(string image, string transform)
         {
-            Type typeFrom = null, typeTo = null;
             List<SliderAttribute> sliders = new List<SliderAttribute>();
             
             MethodInfo fn;
@@ -137,24 +136,46 @@ namespace Terry
 
                 //see if there's a hint for the range/default
                 PropertyInfo hint = typeof(Pan).GetProperty(t.Name);
-                //if (hint != null && FSharpType.IsTuple(hint.PropertyType))
-                //{
-                //}
-                //else //use defaults
+                switch (t.ParameterType.ToString())
                 {
-                    switch (t.ParameterType.ToString())
-                    {
-                        case "System.String":
-                            sliders.Add(new SliderText("text", "on and "));
-                            break;
-                        case "System.Double":
-                            sliders.Add(new SliderDouble("double", 0, -2, +2));
-                            break;
-                        case "System.Int32":
-                            sliders.Add(new SliderInt("integer", 1, -10, +10));
-                            break;
-                    }
+                    case "System.String":
+                        if (hint != null && FSharpType.IsTuple(hint.PropertyType))
+                        {
+                            Tuple<string, string> stuple = hint.GetGetMethod().Invoke(null, null) as Tuple<string, string>;
+                            if (stuple != null)
+                            {
+                                sliders.Add(new SliderText(stuple.Item1, stuple.Item2));
+                                break;
+                            }
+                        }
+                        sliders.Add(new SliderText(t.Name, "on and "));
+                        break;
+                    case "System.Double":
+                        if (hint != null && FSharpType.IsTuple(hint.PropertyType))
+                        {
+                            Tuple<string, double, double, double> dtuple = hint.GetGetMethod().Invoke(null, null) as Tuple<string, double, double, double>;
+                            if (dtuple != null)
+                            {
+                                sliders.Add(new SliderDouble(dtuple.Item1, dtuple.Item2, dtuple.Item3, dtuple.Item4));
+                                break;
+                            }
+                        }
+                        sliders.Add(new SliderDouble(t.Name, 0, -2, +2));
+                        break;
+                    case "System.Int32":
+                        if (hint != null && FSharpType.IsTuple(hint.PropertyType))
+                        {
+                            Tuple<string, int, int, int> ituple = hint.GetGetMethod().Invoke(null, null) as Tuple<string, int, int, int>;
+                            if (ituple != null)
+                            {
+                                sliders.Add(new SliderInt(ituple.Item1, ituple.Item2, ituple.Item3, ituple.Item4));
+                                break;
+                            }
+                        }
+                        sliders.Add(new SliderInt(t.Name, 1, -10, +10));
+                        break;
                 }
+                
                 param.RemoveAt(0);
             }
             return sliders;
@@ -222,7 +243,7 @@ namespace Terry
                         else
                             imageFunction = DrawImage.doubleToColImage((Converter<Pan.Point, double>)Delegate.CreateDelegate(typeof(Converter<Pan.Point, double>), method));
                         break;
-                    case "Pan.Color":
+                    case "Pan+Color":
                         if (paramValues.Count > 0)
                             imageFunction = Curry<Pan.Color>(method, paramTypes.ToArray(), paramValues.ToArray());
                         else
@@ -266,7 +287,7 @@ namespace Terry
             MethodInfo fn;
             //try property getter first
             fn = typeof(Pan).GetMethod("get_" + image);
-            if (fn == null)
+            if (fn == null && image!=null)
                 fn = typeof(Pan).GetMethod(image);
             return fn;
         }
@@ -294,6 +315,9 @@ namespace Terry
         /// <returns></returns>
         public FastFunc<Pan.Point, Pan.Color> GetTransformFunction(string transform, FastFunc<Pan.Point, Pan.Color> image, IList<SliderAttribute> sliders)
         {
+            if (string.IsNullOrEmpty(transform) || transform == None)
+                return image;
+
             FastFunc<Pan.Point, Pan.Color> imageFunction = null;
             Type typeFrom = null, typeTo = null;
             MethodInfo method;

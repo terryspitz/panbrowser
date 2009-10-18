@@ -36,7 +36,7 @@ namespace Terry
         /// <returns></returns>
         public static bool TextPoint(string text, double x, double y)
         {
-            if (x < 0 || y < 0 || x >= 1 || y >= 1) return false;
+            if (double.IsNaN(x) || double.IsNaN(y) || x < 0 || y < 0 || x >= 1 || y >= 1) return false;
 #if !TRYWPF
             lock (myLock)
             {

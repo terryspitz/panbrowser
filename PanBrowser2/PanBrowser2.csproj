@@ -70,6 +70,8 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="PanWrapper.cs" />
+    <Compile Include="Sliders.cs" />
     <Compile Include="Window1.xaml.cs">
       <DependentUpon>Window1.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -79,10 +81,6 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Helpers\Helpers.csproj">
-      <Project>{4EE13A68-D74E-4A80-87FC-D81AD71B4A26}</Project>
-      <Name>Helpers</Name>
-    </ProjectReference>
     <ProjectReference Include="..\PanLib\PanLib.fsproj">
       <Project>{70C2822E-4DD3-4031-B017-B43BB35EBB1E}</Project>
       <Name>PanLib</Name>

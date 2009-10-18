@@ -5,19 +5,21 @@
 
 module Pan
 
+open System
 open System.Windows.Media
+open Terry
 
 (* ----- UI ---- *)
 //open Terry
 
 //wrap query to User Interface (slider)
 
-let getSlider s f t def = Terry.Sliders.Getdouble(s, f, t, def)
-let getSlider2 s f t def p = Terry.Sliders.Getdouble(s, f, t, def)     //takes point to make sure compiler doesn't cache result at startup
+//let getSlider s f t def = Terry.Sliders.Getdouble(s, f, t, def)
+//let getSlider2 s f t def p = Terry.Sliders.Getdouble(s, f, t, def)     //takes point to make sure compiler doesn't cache result at startup
 
 //or stub it out like this:
-//let getSlider s f t d = 1
-//let getSlider2 s f t d p = 1
+let getSlider s f t d = 1
+let getSlider2 s f t d p = 1
 
 
 (* ----------- 2 What is an image? ------------- *)
@@ -39,8 +41,13 @@ let vstrip p = (p.x > -0.5 && p.x < 0.5)
 let even x = (x % 2) =0
 let odd x = (x % 2) <>0
 let checker p = even (int p.x + int p.y) 
-let tileP p = { x= ((p.x % 1.0) + 1.0) % 1.0; y= ((p.y % 1.0)+1.0) % 1.0 }
+let mapTo01 x = ((x % 1.0) + 1.0) % 1.0;
+let tileP p = { x= mapTo01 p.x; y= mapTo01 p.y }
 let tile im = im << tileP
+
+let tileSmoothP p = 
+    let map x = if (even (int x)) then mapTo01 x else 1.0 - mapTo01 x
+    { x= map p.x; y=map p.y }
 
 let distO p = System.Math.Sqrt(p.x*p.x + p.y*p.y)
 let altRings p = even (int  (distO p))
@@ -56,7 +63,9 @@ let polarChecker n p =
     in checker ( sc ( toPolar p ))
 
 let polarChecker10 = polarChecker 10
-let polarCheckerN p = polarChecker (getSlider2 "radius" -20 20 10 p) p
+
+let radiusArg = ("radius", -20, 20, 10)
+let polarCheckerN radiusArg = polarChecker radiusArg
 
 let wavDist p = (1.0 + cos (System.Math.PI * distO p)) / 2.0
 
@@ -75,6 +84,7 @@ let invisible = { r=0.0; g=0.0; b=0.0; a=0.0 }
 let black = { r=0.0; g=0.0; b=0.0; a=1.0 }
 let red = { r=1.0; g=0.0; b=0.0; a=1.0 }
 let green = { r=0.0; g=1.0; b=0.0; a=1.0 }
+let nicegreen = { r=0.5; g=0.84; b=0.21; a=1.0 }    //7ed837
 let blue = { r=0.0; g=0.0; b=1.0; a=1.0 }
 let yellow = { r=1.0; g=1.0; b=0.0; a=1.0 }
 let magenta = { r=1.0; g=0.0; b=1.0; a=1.0 }
@@ -122,7 +132,7 @@ let bwunixbox = bwImage unitbox
 let bilerpBRBW = condC unitbox (bilerpC black red blue white) (canvas white)
 
 let ybRings = lerpI wavDist (canvas blue) (canvas yellow)
-let ringChecker = lerpI wavDist (bwImage (polarCheckerN)) (byImage checker)
+let ringChecker radiusArg = lerpI wavDist (bwImage (polarCheckerN radiusArg)) (byImage checker)
 
 (* ----------- 5 Spacial Transforms ------------- *)
 
@@ -130,19 +140,38 @@ type Transform = Point -> Point
 
 let identityTransform (p : Point) = p
 let translateP (dx,dy) p = { x= dx + p.x; y= dy + p.y }
-let translateP2 = translateP (((float)(getSlider "x" -10 10 0))/2.0, ((float)(getSlider "y" -10 10 0)/2.0) )
 let scaleP (x,y) p = { x= x * p.x; y= y * p.y }
 let uscaleP s = scaleP (s,s)
 let rotateP th p = { x= p.x * cos th - p.y * sin th;
                      y= p.y * cos th + p.x * sin th }
 
-type Filter<'a> = (Point -> 'a) -> (Point -> 'a)
+exception NeedsDouble of string * double * double * double
 
-let identityFilter (image : Point -> 'a) p = image p
-let transformImage transformPoint (image : Point -> 'a) = image << transformPoint
+//three ways to add defaults to args:
+
+//attributes (but they don't get inherited when composed)
+//let translateS ([<SliderDouble("x", 0.0, -10.0, 10.0)>]x) ([<SliderDouble("y", 0.0, -10.0, 10.0)>]y) = translateP (x, y)
+
+//exceptions; bit, err, clunky?
+let translateE x y =    if x = None then raise (NeedsDouble("x", 0.0, -2.0, 2.0)) 
+                        else if y = None then raise (NeedsDouble("y", 0.0, -2.0, 2.0))
+                        else translateP (x.Value, y.Value)
+                        
+//global hint
+let translateH dx dy p = { x= dx + p.x; y= dy + p.y }
+let dx = ("translate x", -5.0, 5.0, 0.0)
+let dy = ("translate y", -5.0, 5.0, 0.0)
+                        
+                        
+let scaleS s = uscaleP s
+let rotateS r = rotateP r
+
+type ImageTranform<'a> = (Point -> 'a) -> (Point -> 'a)
+
+//let identityImageTransform (image : Point -> 'a) p = image p
+let transformImage (pointTransform : Transform) (image : Image<'a>) = image << pointTransform 
 
 let translate (dx,dy)   image p = image (translateP (0.0-dx,0.0-dy) p)
-let translate2          image p = image (translateP2 p)
 let scale (sx, sy)      image p = image (scaleP (1.0/sx, 1.0/sy) p)
 let uscale s            image p = image (uscaleP (1.0/s) p)
 let rotate th           image p = image (rotateP (0.0-th) p)
@@ -151,9 +180,12 @@ let rotate th           image p = image (rotateP (0.0-th) p)
 
 let swirlP r p = rotateP (log ((distO p)+1e-6) * r / 5.0) p
 let swirl r image p = image (swirlP r p)
+let swirl2P r p = rotateP ((exp -(pown (distO p) 1)) * (r/ (float)5.0)) p
+let swirl2S image p = transformImage (swirl2P ((float)(getSlider2 "swirl" -20 20 1 p))) image p
 
 //should be: let swirlVstrip = swirl ((float )(getSlider "swirl" -10 10 10)) vstrip )    but the compiler precaches the silder value
-let swirlVstrip p = swirl ((float)(getSlider2 "swirl" -20 20 1 p)) vstrip p
+let swirlArg = ("swirl",-20.0, 20.0, 1.0)
+let swirlVstrip swirlArg = swirl swirlArg vstrip 
 
 let udisc p = distO p < 1.0
 let tileDisc = tile (translate (0.5,0.5) (uscale 0.5 udisc))
@@ -167,15 +199,20 @@ let tilebox = tile (uscale 0.9 unitbox)
 //let (<<) f g x = f (g x)
 //let apply f x = f x
 
-let polarTransform xf p = (fromPolar << xf << toPolar) p
-
-let radialInvert im = 
+let polarTransform xf = toPolar >> xf >> fromPolar
+let radialInvertP = 
     let invert (r, th) = (1.0/ (r+1e-10),th ) in
-    im << polarTransform invert
+    polarTransform invert
 
-let radialInvertChecker = radialInvert checker
-let radialInvertVStrip = radialInvert vstrip
-//let radInvertChecker2 = apply radInvert checker   //alternate syntax
+let radialInvertH radiusarg = 
+    let invert (r, th) = (radiusarg/ (r+1e-10),th ) in
+    polarTransform invert
+let radiusarg = ("invert radius", 0.01, 10.0, 1.0)
+
+//let radialInvertT = transformImage radialInvertP
+
+//let radialInvertChecker = radialInvert checker
+//let radialInvertVStrip = radialInvert vstrip
 
 //flowers by terry: inspired by pic @ http://www.codeproject.com/KB/WPF/WPFJoshSmith.aspx
 let flowerR (r, th) =
@@ -217,10 +254,15 @@ let nestedSquares p = even (int  (max (abs p.x) (abs p.y) ))
   
 (* ----------- Pictures and Text from Pan Samples -------------*)
 
-let text p = (Terry.Helpers.TextPoint("tali ", p.x, p.y) )
+let textH textarg p = (Terry.Helpers.TextPoint(textarg, p.x, p.y) )
+let textarg = ("text", "pan rules ok...")
+
+let text = textH "tali "
+
 //let text = unitbox    
+let tiletextH s = scale (1.0, 0.5) (tile (scale (1.0, 2.0) (translate (0.0, -0.2) (textH s))))
 let tiletext = scale (1.0, 0.5) (tile (scale (1.0, 2.0) (translate (0.0, -0.2) text)))
-let inverttext = radialInvert tiletext
+//let inverttext = radialInvert tiletext
 let textbox = condC text (canvas white) (byImage unitbox)
 
 let circleTranformPolar polar = 
@@ -235,8 +277,10 @@ let spiralText = transformImage spiralTranform tiletext
 
 let swirlText p = 
     condC (swirl ((float) (getSlider2 "swirl" -10 10 10 p)) tiletext) 
-        (canvas (SysColor Colors.BlueViolet)) 
-        (canvas (SysColor Colors.Turquoise))
+//        (canvas (SysColor Colors.BlueViolet)) 
+//        (canvas (SysColor Colors.Turquoise))
+        (canvas (darken 0.8 nicegreen))
+        (canvas nicegreen) 
         p
 
 let talitext = 
@@ -301,7 +345,9 @@ let complex2 z =
 
 let origin = { x=0.0; y=0.0 }
 
-let mandlebrot p =
+let iterations = ("iterations", 100, 1, 300)
+
+let mandlebrot iterations p =
     let rec checkMand z i maxiter =
         if i > maxiter then
             black
@@ -309,8 +355,9 @@ let mandlebrot p =
             intToColor i
         else 
             checkMand (addp (complex2 z) p) (i+1) maxiter
-    in checkMand origin 0 (getSlider "Iterations" 1 200 100)
-    
+    in checkMand origin 0 iterations
+
+let mandlebrotS = mandlebrot (getSlider "Iterations" 1 200 100)
 
 
 //dots, terry aug-2009, inspired by painting tali's room;
