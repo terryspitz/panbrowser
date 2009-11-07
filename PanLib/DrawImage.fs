@@ -45,12 +45,11 @@ open System.Windows.Media.Imaging
 
 //------ DRAW FUNCTION INTO BITMAP ----------
 
-let drawImageCol f width height step =
+let drawImageCol f width height step scale =
     let xrange = (int)(width / (pown 2.0 step))
     let yrange = (int)(height / (pown 2.0 step))
     let pixels = Array.init (xrange * yrange * 3) (fun i -> (byte)0)
-    let size = getSlider "Size" -10 10 0
-    let mult = System.Math.Pow(1.3,-(float)size)/float(min width height)*3.0 * (pown 2.0 step) 
+    let mult = System.Math.Pow(1.3,-scale)/float(min width height)*3.0 * (pown 2.0 step) 
     let start = System.Environment.TickCount;
     let panToRGB (c: float) = (byte)(255.0 * max 0.0 (min c 1.0)) in
     for i=0 to xrange-1 do

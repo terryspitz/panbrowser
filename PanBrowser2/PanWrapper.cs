@@ -18,7 +18,7 @@ namespace Terry
 
         public List<string> Images { get; set; }
         public List<string> Transforms { get; set; }
-        protected readonly string None = "---none---";
+        public readonly string None = "---none---";
 
         public PanWrapper()
         {
@@ -116,7 +116,7 @@ namespace Terry
             return true;
         }
 
-        public IList<SliderAttribute> GetSliders(string image, string transform)
+        public IList<SliderAttribute> GetSliders(string image)
         {
             List<SliderAttribute> sliders = new List<SliderAttribute>();
             
@@ -159,8 +159,15 @@ namespace Terry
                                 sliders.Add(new SliderDouble(dtuple.Item1, dtuple.Item2, dtuple.Item3, dtuple.Item4));
                                 break;
                             }
+                            Tuple<string, int, int, int> ituple = hint.GetGetMethod().Invoke(null, null) as Tuple<string, int, int, int>;
+                            if (ituple != null)
+                            {
+                                sliders.Add(new SliderDouble(ituple.Item1, ituple.Item2, ituple.Item3, ituple.Item4));
+                                break;
+                            }
+
                         }
-                        sliders.Add(new SliderDouble(t.Name, 0, -2, +2));
+                        sliders.Add(new SliderDouble(t.Name, -2, +2, 0));
                         break;
                     case "System.Int32":
                         if (hint != null && FSharpType.IsTuple(hint.PropertyType))
@@ -171,8 +178,14 @@ namespace Terry
                                 sliders.Add(new SliderInt(ituple.Item1, ituple.Item2, ituple.Item3, ituple.Item4));
                                 break;
                             }
+                            Tuple<string, double, double, double> dtuple = hint.GetGetMethod().Invoke(null, null) as Tuple<string, double, double, double>;
+                            if (dtuple != null)
+                            {
+                                sliders.Add(new SliderInt(dtuple.Item1, (int)dtuple.Item2, (int)dtuple.Item3, (int)dtuple.Item4));
+                                break;
+                            }
                         }
-                        sliders.Add(new SliderInt(t.Name, 1, -10, +10));
+                        sliders.Add(new SliderInt(t.Name, -10, +10, 1));
                         break;
                 }
                 
@@ -205,23 +218,10 @@ namespace Terry
             if(method==null)
                 throw new Exception("image " + image + " not found");  //not an image or transform
 
-            List<ParameterInfo> param = new List<ParameterInfo>();
-            param.AddRange(method.GetParameters());
-            List<object> paramValues = new List<object>();
-            List<Type> paramTypes = new List<Type>();
-            while (param.Count > 0)
-            {
-                ParameterInfo t = param[0];
-                if (t.ParameterType != typeof(bool) && t.ParameterType != typeof(double) &&
-                    t.ParameterType != typeof(int) && t.ParameterType != typeof(string))
-                {
-                    break;  //maybe one param left
-                }
-                paramValues.Add(sliders[0].Value);
-                paramTypes.Add(t.ParameterType);
-                sliders.RemoveAt(0);
-                param.RemoveAt(0);
-            }
+            List<ParameterInfo> param;
+            List<object> paramValues;
+            List<Type> paramTypes;
+            GetParameters(sliders, method.GetParameters(), out param, out paramValues, out paramTypes);
 
             if (param.Count == 1)       //assume a basic function e.g. Point -> Color
             {
@@ -232,22 +232,13 @@ namespace Terry
                 switch (method.ReturnType.ToString())
                 {
                     case "System.Boolean":
-                        if (paramValues.Count > 0)
-                            imageFunction = DrawImage.boolToColImage(Curry<bool>(method, paramTypes.ToArray(), paramValues.ToArray()));
-                        else
-                            imageFunction = DrawImage.boolToColImage((Converter<Pan.Point, bool>)Delegate.CreateDelegate(typeof(Converter<Pan.Point, bool>), method));
+                        imageFunction = DrawImage.boolToColImage(Curry<bool>(method, paramTypes.ToArray(), paramValues.ToArray()));
                         break;
                     case "System.Double":
-                        if (paramValues.Count > 0)
-                            imageFunction = DrawImage.doubleToColImage(Curry<double>(method, paramTypes.ToArray(), paramValues.ToArray()));
-                        else
-                            imageFunction = DrawImage.doubleToColImage((Converter<Pan.Point, double>)Delegate.CreateDelegate(typeof(Converter<Pan.Point, double>), method));
+                        imageFunction = DrawImage.doubleToColImage(Curry<double>(method, paramTypes.ToArray(), paramValues.ToArray()));
                         break;
                     case "Pan+Color":
-                        if (paramValues.Count > 0)
-                            imageFunction = Curry<Pan.Color>(method, paramTypes.ToArray(), paramValues.ToArray());
-                        else
-                            imageFunction = (Converter<Pan.Point, Pan.Color>)Delegate.CreateDelegate(typeof(Converter<Pan.Point, Pan.Color>), method);
+                        imageFunction = Curry<Pan.Color>(method, paramTypes.ToArray(), paramValues.ToArray());
                         break;
                     default:
                         throw new Exception("image " + image + " wrong type");
@@ -280,6 +271,27 @@ namespace Terry
 
 
             return imageFunction;
+        }
+
+        private static void GetParameters(IList<SliderAttribute> sliders, ParameterInfo[] paramArray, out List<ParameterInfo> param, out List<object> paramValues, out List<Type> paramTypes)
+        {
+            param = new List<ParameterInfo>();
+            param.AddRange(paramArray);
+            paramValues = new List<object>();
+            paramTypes = new List<Type>();
+            while (param.Count > 0)
+            {
+                ParameterInfo t = param[0];
+                if (t.ParameterType != typeof(bool) && t.ParameterType != typeof(double) &&
+                    t.ParameterType != typeof(int) && t.ParameterType != typeof(string))
+                {
+                    break;  //maybe one param left
+                }
+                paramValues.Add(sliders[0].Value);
+                paramTypes.Add(t.ParameterType);
+                sliders.RemoveAt(0);
+                param.RemoveAt(0);
+            }
         }
 
         private static MethodInfo GetMethod(string image)
@@ -319,80 +331,37 @@ namespace Terry
                 return image;
 
             FastFunc<Pan.Point, Pan.Color> imageFunction = null;
-            Type typeFrom = null, typeTo = null;
             MethodInfo method;
-
             method = GetMethod(transform);
             if (method == null)
                 throw new Exception("transform " + transform + " not found");  //not an image or transform
 
-            List<ParameterInfo> param = new List<ParameterInfo>();
-            param.AddRange(method.GetParameters());
+            List<ParameterInfo> param;
+            List<object> paramValues;
+            List<Type> paramTypes;
+            GetParameters(sliders, method.GetParameters(), out param, out paramValues, out paramTypes);
 
-            if (FSharpType.IsFunction(method.ReturnType))    //method is returning a Function object
+            if (param.Count == 1)       //a basic function e.g. Point -> Point
+            {
+                if (param[0].ParameterType != typeof(Pan.Point) || method.ReturnType != typeof(Pan.Point))
+                    throw new Exception("transform " + transform + " wrong type");  //not a transform
+                paramTypes.Add(param[0].ParameterType);
+                imageFunction = Pan.transformImage<Pan.Color>(
+                        Curry<Pan.Point>(method, paramTypes.ToArray(), paramValues.ToArray()),
+                        image);
+            }
+            else if (param.Count == 0
+                && FSharpType.IsFunction(method.ReturnType))    //method is returning a Function object
             {
                 Tuple<Type, Type> types = FSharpType.GetFunctionElements(method.ReturnType);
-                if(types.Item1!=typeof(Pan.Point) || types.Item2!=typeof(Pan.Point))
+                if (types.Item1 != typeof(Pan.Point) || types.Item2 != typeof(Pan.Point))
                     throw new Exception("transform " + transform + " wrong type");  //not an image or transform
                 imageFunction = Pan.transformImage<Pan.Color>(
-                        (FastFunc<Pan.Point, Pan.Point>)Delegate.CreateDelegate(typeof(FastFunc<Pan.Point, Pan.Point>), typeof(Pan), transform)
-                    ,imageFunction);
+                    (FastFunc<Pan.Point, Pan.Point>)method.Invoke(null, paramValues.ToArray())
+                    , image);
             }
-
-            Dictionary<string, object> sliderValues = new Dictionary<string, object>();
-            foreach(SliderAttribute s in sliders)
-                sliderValues[s.Name] = s.Value;
-
-            while (param.Count > 0)
-            {
-                ParameterInfo t = param[param.Count-1];
-                if (t.ParameterType != typeof(bool) && t.ParameterType != typeof(double) &&
-                    t.ParameterType != typeof(int) && t.ParameterType != typeof(string))
-                {
-                    break;
-                }
-
-                switch (t.ParameterType.ToString())
-                {
-                    case "System.String":
-                        break;
-                    case "System.Double":
-                        double d = (double)sliderValues[t.Name];
-                        //imageFunction = Curry(
-                        //        (FastFunc<Pan.Point, Pan.Point>)Delegate.CreateDelegate(typeof(FastFunc<Pan.Point, Pan.Point>), typeof(Pan), transform)
-                        //, imageFunction)
-                            ;
-                        break;
-                    case "System.Int32":
-                        break;
-                }
-                param.RemoveAt(0);
-            }
-
-            if (param.Count == 1)       //assume a basic function e.g. Point -> Point
-            {
-                typeFrom = param[0].ParameterType;
-                typeTo = method.ReturnType;
-            }
-            else
-                throw new Exception("transform " + transform + " not found");  //not an image or transform
-
-            if (method != null)
-            {
-                if (method .ReturnType == typeof(Pan.Point))    //transform
-                {
-                    //imageFunction = transformImage(
-                    //    (Converter<Pan.Point, Pan.Point>)Delegate.CreateDelegate(typeof(Converter<Pan.Point, Pan.Point>), typeof(Pan), transform),
-                    //    imageFunction);
-                    imageFunction = Pan.transformImage<Pan.Color>(
-                        FuncConvert.ToFastFunc(
-                            (Converter<Pan.Point, Pan.Point>)Delegate.CreateDelegate(typeof(Converter<Pan.Point, Pan.Point>), typeof(Pan), transform)
-                        ),
-                        imageFunction);
-                }
-                else
-                {
-                    try
+                /*
+                try
                     {
                         MethodInfo genericMethodInfo = method .MakeGenericMethod(new Type[] { typeof(Pan.Color) });
                         object newImageFn = genericMethodInfo.Invoke(null, new object[] { imageFunction });
@@ -401,8 +370,7 @@ namespace Terry
                     catch (Exception)
                     {
                     }
-                }
-            }
+                }*/
             return imageFunction;
         }
 
@@ -422,6 +390,9 @@ namespace Terry
         /// <returns></returns>
         protected static FastFunc<Pan.Point, T> Curry<T>(MethodInfo method, Type[] paramTypes, object[] paramValues)
         {
+            if(paramTypes.Length==1)
+                return (Converter<Pan.Point, T>)Delegate.CreateDelegate(typeof(Converter<Pan.Point, T>), method);
+
             DynamicMethod curryFn = new DynamicMethod("curryFn", typeof(T), new Type[] { typeof(Pan.Point) });
             CreateCurryFunction(method, paramTypes, paramValues, curryFn);
             return FuncConvert.ToFastFunc(
