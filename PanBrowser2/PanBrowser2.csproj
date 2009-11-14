@@ -14,6 +14,11 @@
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <ManifestCertificateThumbprint>13681C30880C2DCFB64A48C91B90E985DBD9C6AA</ManifestCertificateThumbprint>
+    <ManifestKeyFile>PanBrowser2_TemporaryKey.pfx</ManifestKeyFile>
+    <GenerateManifests>true</GenerateManifests>
+    <SignManifests>true</SignManifests>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -24,11 +29,13 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>0</ApplicationRevision>
+    <AutorunEnabled>true</AutorunEnabled>
+    <ApplicationRevision>1</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
+    <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <StartupObject>PanBrowser2.App</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -63,7 +70,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="Window1.xaml">
+    <Page Include="PanWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -73,8 +80,8 @@
     </Compile>
     <Compile Include="PanWrapper.cs" />
     <Compile Include="Sliders.cs" />
-    <Compile Include="Window1.xaml.cs">
-      <DependentUpon>Window1.xaml</DependentUpon>
+    <Compile Include="PanWindow.xaml.cs">
+      <DependentUpon>PanWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
@@ -82,6 +89,14 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Brill\BrillWpf.csproj">
+      <Project>{02099524-600D-4AF8-ABD9-07A600AD5CA2}</Project>
+      <Name>BrillWpf</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Pan3D\Pan3D.csproj">
+      <Project>{2D7AB553-EBE6-42D6-B743-48004614EA6A}</Project>
+      <Name>Pan3D</Name>
+    </ProjectReference>
     <ProjectReference Include="..\PanLib\PanLib.fsproj">
       <Project>{70C2822E-4DD3-4031-B017-B43BB35EBB1E}</Project>
       <Name>PanLib</Name>
@@ -118,6 +133,12 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="littlePolarChecker.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="PanBrowser2_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

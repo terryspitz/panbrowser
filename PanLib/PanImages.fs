@@ -6,8 +6,8 @@
 module Pan
 
 open System
-open System.Windows.Media
 open Terry
+open System.Windows.Media
 
 (* ----------- 2 What is an image? ------------- *)
 

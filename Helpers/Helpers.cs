@@ -36,11 +36,13 @@ namespace Terry
         /// <returns></returns>
         public static bool TextPoint(string text, double x, double y)
         {
-            if (double.IsNaN(x) || double.IsNaN(y) || x < 0 || y < 0 || x >= 1 || y >= 1) return false;
 #if !TRYWPF
             lock (myLock)
             {
-                if (text != myText)
+                if (double.IsNaN(x) || double.IsNaN(y) || x < 0 || y < 0 || y >= 1 || x>=1) 
+                    return false;
+
+                if (text != myText && !string.IsNullOrEmpty(text))
                 {
                     myText = text;
                     myBitmap = new Bitmap(1, 1, PixelFormat.Format24bppRgb);
@@ -51,8 +53,13 @@ namespace Terry
                     g = Graphics.FromImage(myBitmap);
                     g.DrawString(text, font, Brushes.White, 0, 0);
                 }
+                //scale to unit width
                 int i = (int)(x * (myBitmap.Width - 1));
                 int j = Math.Max(0, myBitmap.Height - 1 - (int)(y * (myBitmap.Width - 1)));
+
+                //else scale to unit height
+                //int i = Math.Min(myBitmap.Width-1, (int)(x * (myBitmap.Height- 1)));
+                //int j = Math.Max(0, (int)(myBitmap.Height - 1 - y * (myBitmap.Height - 1)));
                 return myBitmap.GetPixel(i,j).R > 0;
 #else
             lock (myLock)

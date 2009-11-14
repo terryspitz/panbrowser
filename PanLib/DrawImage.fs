@@ -41,7 +41,7 @@ let drawImageDouble f width height step =
 #else
 
 open System.Windows.Media
-open System.Windows.Media.Imaging
+//open System.Windows.Media.Imaging
 
 //------ DRAW FUNCTION INTO BITMAP ----------
 
