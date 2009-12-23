@@ -50,7 +50,7 @@ namespace Terry
         }
 
         public Shapes shapes = new Shapes();
-        public Shapes.ShapeType shape;
+        protected Converter<Vector3D, double> _shape;
 
         public IDictionary<Point, float> Points { get; set; }
         public IDictionary<Point, Cell> Cells { get; set; }
@@ -61,14 +61,14 @@ namespace Terry
         public readonly float isosurface = 1f;
         protected bool interpolate;
         public string Description { get; set; }
-        
-        public Sampler(Shapes.ShapeType s)
+
+        public Sampler(Converter<Vector3D, double> fn)
         {
             Points = new Dictionary<Point, float>(new PointComparer());
             Cells = new Dictionary<Point, Cell>(new PointComparer());
             Resolution = 10;
 
-            shape = s;
+            _shape = fn;
             for(int i=0; i<256; i++)
             {
                 int result = 0;
@@ -150,8 +150,9 @@ namespace Terry
             {
                 Point p = cubelist.Pop();
                 int cornerset = testCube(p);
-                if(!Cells.ContainsKey(p))
-                    Cells.Add(p, new Cell(p, cornerset));
+                if (cornerset > 0 && cornerset < 255)
+                    if (!Cells.ContainsKey(p))
+                        Cells.Add(p, new Cell(p, cornerset));
 
                 //push more interesting Cubes to test
                 if (cornerset > 0 && cornerset < 255)
@@ -171,11 +172,13 @@ namespace Terry
                 }
                 else empty++;
             }
+            if (Cells.Count == 100000)
+                throw new Exception("Too many cubes found - can't draw");
         }
 
         void addCube(Point p)
         {
-            if (!Cells.ContainsKey(p))
+            if (!Cells.ContainsKey(p) && p*p<1000)
             {
                 cubelist.Push(p);
             }
@@ -211,12 +214,17 @@ namespace Terry
             return cornerset;
         }
 
+        Vector3D PointToVector(Point p, int resolution)
+        {
+            return new Vector3D(((double)p.i) / resolution, ((double)p.j) / resolution, ((double)p.k) / resolution);
+        }
+
         float TestPoint(Point p)
         {
             if (interpolate)
-                return Math.Min(shapes.Test(shape, p, Resolution, time), 1e5f);
+                return (float)Math.Min(_shape.Invoke(PointToVector(p, Resolution)), 1e5f);
             else
-                return shapes.Test(shape, p, Resolution, time) >= isosurface ? isosurface*2 : 0f;
+                return _shape.Invoke(PointToVector(p, Resolution)) >= isosurface ? isosurface * 2 : 0f;
         }
 
         public void CalculateFaces()
@@ -343,7 +351,9 @@ namespace Terry
 
         void FindAndSetNormal(Point p, int startCorner, int endCorner, ref SharedNormal normal)
         {
-            Cell cell = Cells[p];
+            Cell cell = null;
+            if(!Cells.TryGetValue(p, out cell))
+                return;
 
             for(int i = 0; i < cell.Cornerset.Triangles.Length; i++)
             {

@@ -23,11 +23,9 @@ namespace BrillWpf
     /// <summary>
     /// Interaction logic for Window1.xaml
     /// </summary>
-    public partial class Window1 : DockPanel
+    public partial class BrillDockPanel : DockPanel
     {
-        BrillRenderer renderer;
-
-        public Window1()
+        public BrillDockPanel()
         {
             InitializeComponent();
         }
@@ -44,13 +42,15 @@ namespace BrillWpf
             //viewport.Camera.Transform = trackball.Transform;
             //skybox.Camera.Transform = trackball.Transform;
           
-            renderer = new BrillRenderer();
-            renderer.Storyboard = _storyboard;
-            renderer.Init();
-            Fill();
+            //CloneModelAndTrigger(trackball);
 
+
+        }
+
+        private Trackball CloneModelAndTrigger(Trackball trackball)
+        {
             ModelVisual3D newModel = CloneModel();
-            newModel.Transform = new TranslateTransform3D(2,0,0);
+            newModel.Transform = new TranslateTransform3D(2, 0, 0);
             //_viewport.Children.Add(newModel);
 
             string xaml = XamlWriter.Save(_eventTrigger);
@@ -60,18 +60,17 @@ namespace BrillWpf
             BeginStoryboard t = (BeginStoryboard)newTrigger.Actions[0];
             //t.Storyboard.
             QuaternionRotation3D qr = (((newModel.Content.Transform as Transform3DGroup).Children[1] as RotateTransform3D).Rotation as QuaternionRotation3D);
-            
+
             (t.Storyboard.Children[0] as QuaternionAnimation).Name += "1";
             Storyboard.SetTargetName(t, (t.Storyboard.Children[0] as QuaternionAnimation).Name);
             _viewport.Triggers.Add(newTrigger);
-            
+
             trackball = new Trackball();
             trackball.EventSource = _viewport;
             //((Transform3DGroup)_geomModel.Transform).Children.Add(trackball.Transform);
-            trackball.SetAnimation(t.Storyboard, t.Storyboard.Children[0] as QuaternionAnimation, 
+            trackball.SetAnimation(t.Storyboard, t.Storyboard.Children[0] as QuaternionAnimation,
                 qr);
-
-
+            return trackball;
         }
 
         private ModelVisual3D CloneModel()
@@ -83,14 +82,15 @@ namespace BrillWpf
             return newModel;
         }
 
-        private void Fill()
+        public void Fill(BrillRenderer renderer)
         {
             double max;
             _geomModel.Geometry = renderer.Fill(0, out max);
             _modelScale.ScaleX = _modelScale.ScaleY = _modelScale.ScaleZ = 1 / max;
         }
 
-        private void Window_KeyUp(object sender, KeyEventArgs e)
+        /*
+         * private void Window_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.N)
             {
@@ -107,7 +107,7 @@ namespace BrillWpf
 
             renderer.OnNextShape();
             Fill();
-        }
+        }*/
 
         public void SetGeometry(MeshGeometry3D mesh)
         {

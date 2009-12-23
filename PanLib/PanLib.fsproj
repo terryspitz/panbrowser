@@ -58,6 +58,8 @@
   <ItemGroup>
     <Compile Include="PanImages.fs" />
     <Compile Include="DrawImage.fs" />
+    <Compile Include="PanImages3D.fs" />
+    <Compile Include="TerryImages.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Helpers\Helpers.csproj">

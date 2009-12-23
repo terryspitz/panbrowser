@@ -216,55 +216,5 @@ namespace Terry
         }
     }
 
-    public class Flags
-    {
-        public Flags() { ShowFaces = true; InterpolateEdges = true; Multithread = false; }
-        public static string Description { get 
-        { 
-            return @"(i)nterpolate using field values
-Show (f)aces
-Show (n)ormals
-Show ed(g)es
-0-3: normal calculation style
-(M)ultithread"; } 
-        }
-        public bool InterpolateEdges { get; set; }
-        public bool ShowFaces { get; set; }
-        public bool ShowNormals { get; set; }
-        public bool ShowEdges { get; set; }
-        public bool Multithread { get; set; }
-        public enum NormalStyle
-        {
-            None,
-            UseMarchingCubeNormals,
-            FaceAverageNormal,
-            VertexNormals
-        }
-        public NormalStyle ShowNormalStyle { get; set; }
-
-        /// <summary>
-        /// process a keystroke
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns>whether key was handled</returns>
-        public bool SetFlags(char key)
-        {
-            if (key == 'I')
-                InterpolateEdges = !InterpolateEdges;
-            else if (key == 'F')
-                ShowFaces = !ShowFaces;
-            else if (key == 'N')
-                ShowNormals = !ShowNormals;
-            else if (key == 'G')
-                ShowEdges = !ShowEdges;
-            else if (key >= 0 && key < (int)Enum.GetValues(typeof(NormalStyle)).Length)
-                ShowNormalStyle = (NormalStyle)(int)(key - '0');
-            else if (key == 'M')
-                Multithread = !Multithread;
-            else
-                return false;
-            return true;
-        }
-    }
 
 }

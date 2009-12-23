@@ -9,7 +9,7 @@ using System.Windows.Media.Animation;
 
 namespace Terry
 {
-    class BrillRenderer
+    public class BrillRenderer
     {
         Geometry geo;
         IEnumerable enumerable;

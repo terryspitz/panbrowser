@@ -73,8 +73,14 @@ let drawImageCol f width height step scale =
 let drawImageBool f width height step =
     drawImageCol (byImage f) width height step
 
-let doubleToColImage f = lerpI f (canvas blue) (canvas white)    
+let doubleToColImage f = lerpI f (canvas nicegreen) (canvas (darken 0.8 nicegreen))    
 
-let boolToColImage f = byImage f
+let boolToColImage f = condC f (canvas nicegreen) (canvas (darken 0.8 nicegreen))    
+
+//type translate = (float -> float -> ImageC) -> Pan.TransformC 
+//let translate dx dy (image : Pan.ImageC) p = image (translateP (0.0-dx) (0.0-dy) p)
+let translate x y image : (ImageC) = applyPointTransform (translateP x y) image 
+let rotate th image : (ImageC) = applyPointTransform (rotateP th) image 
+let scale s image :  (ImageC) = applyPointTransform (scaleP (System.Math.Pow(1.3,-s))) image 
 
 #endif

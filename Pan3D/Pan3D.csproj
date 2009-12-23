@@ -113,7 +113,7 @@
     <Compile Include="Caustic.cs" />
     <Compile Include="CubeRenderer.cs" />
     <Compile Include="Cubes.cs" />
-    <Compile Include="DemoController.cs" />
+    <None Include="DemoController.cs" />
     <None Include="Main.cs">
       <SubType>Code</SubType>
     </None>
