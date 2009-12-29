@@ -49,7 +49,7 @@ namespace Terry
             }
         }
 
-        public Shapes shapes = new Shapes();
+        //public Shapes shapes = new Shapes();
         protected Converter<Vector3D, double> _shape;
 
         public IDictionary<Point, float> Points { get; set; }
@@ -372,7 +372,7 @@ namespace Terry
         public void OnTimerTick(double t)
         {
             time = (float)t;
-            shapes.Tick(t);
+            //shapes.Tick(t);
         }
 
     }
