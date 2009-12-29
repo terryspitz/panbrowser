@@ -1,20 +1,23 @@
 ﻿<Window x:Class="Terry.PanBrowser"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns="http://schemas.microsoft.com/netfx/2007/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:c="clr-namespace:Terry"
-    Title="Terry's PanBrowser" Height="400" Width="700" Loaded="Window_Loaded" SizeChanged="Window_SizeChanged">
+    xmlns:b="clr-namespace:Terry;assembly=BrillWpf"
+    Title="Terry's PanBrowser" Height="400" Width="700" 
+        Loaded="Window_Loaded" SizeChanged="Window_SizeChanged" MouseWheel="Window_MouseWheel"
+>
     
     <Window.Resources>
 
         <DataTemplate DataType="{x:Type c:SliderInt}">
             <StackPanel HorizontalAlignment="Stretch" Orientation="Horizontal">
                 <Label Content="{Binding Name}"></Label>
-                <Slider Width="100" Minimum="{Binding From}" Maximum="{Binding To}" Value="{Binding Val}" 
+                <Slider Width="100" Minimum="{Binding From}" Maximum="{Binding To}" Value="{Binding Val}" Tag="{Binding Name}"
                         HorizontalAlignment="Stretch" ValueChanged="Slider_ValueChanged"
-                        SmallChange="1" LargeChange="1"/>
+                        SmallChange="1" LargeChange="2"/>
                 <Label>
                     <Label.Content>
-                        <Binding Path="Val" StringFormat="{}{0:F2}"/>
+                        <Binding Path="Val"/>
                     </Label.Content>
                 </Label>
             </StackPanel>
@@ -22,13 +25,14 @@
 
         <DataTemplate DataType="{x:Type c:SliderDouble}">
             <StackPanel HorizontalAlignment="Stretch" Orientation="Horizontal">
+                <b:PlayButton3D ClipToBounds="False" Height="25" Width="25" MouseUp="PlayButton3D_MouseUp"/>
                 <Label Content="{Binding Name}"></Label>
-                <Slider Width="100" Minimum="{Binding From}" Maximum="{Binding To}" Value="{Binding Val}" 
+                <Slider Width="100" Minimum="{Binding From}" Maximum="{Binding To}" Value="{Binding Val}" Tag="{Binding Name}" Name="Slider"
                         HorizontalAlignment="Stretch" ValueChanged="Slider_ValueChanged"
                         SmallChange="0.1" LargeChange="5"/>
-                <Label>
+                <Label ContentStringFormat="F2">
                     <Label.Content>
-                        <Binding Path="Val" StringFormat="{}{0:F2}"/>
+                        <Binding Path="Val"/>
                     </Label.Content>
                 </Label>
             </StackPanel>
@@ -37,7 +41,7 @@
         <DataTemplate DataType="{x:Type c:SliderText}">
             <StackPanel HorizontalAlignment="Stretch" Orientation="Horizontal">
                 <Label Content="{Binding Name}"></Label>
-                <TextBox TextChanged="TextBox_TextChanged">
+                <TextBox TextChanged="TextBox_TextChanged" Tag="{Binding Name}">
                     <TextBox.Text>
                         <Binding Path="Val" UpdateSourceTrigger="PropertyChanged"/>
                     </TextBox.Text>
@@ -46,10 +50,10 @@
         </DataTemplate>
 
     </Window.Resources>
-    <Grid>
+    <Grid Name="_grid">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="300" />
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="452*" />
         </Grid.ColumnDefinitions>
         <StackPanel Name="designerPanel" Margin="5">
             <TextBlock Margin="5,0,0,0" HorizontalAlignment="Right"><Hyperlink Name="Save" Click="Save_Click">Save Image</Hyperlink></TextBlock>
@@ -59,19 +63,30 @@
                         <Label>Image:</Label>
                         <ComboBox Name="imageCombo1" HorizontalAlignment="Stretch" SelectionChanged="imageCombo1_SelectionChanged" />
                     </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="2">
+                        <Label>Size:</Label>
+                        <Slider Height="24" Name="imageSizeSlider" Width="30" ValueChanged="Slider_ValueChanged" Minimum="-10" />
+                        <Label>Rotate:</Label>
+                        <Slider Height="24" Name="imageRotateSlider" Width="30" ValueChanged="Slider_ValueChanged" Minimum="-10"/>
+                        <Label>X:</Label>
+                        <Slider Height="24" Name="imageXSlider" Width="30" ValueChanged="Slider_ValueChanged" Minimum="-10"/>
+                        <Label>Y:</Label>
+                        <Slider Height="24" Name="imageYSlider" Width="30" ValueChanged="Slider_ValueChanged" Minimum="-10"/>
+                    </StackPanel>
                     <ListView Name="imageSliderList" MinWidth="50" Margin="2">
                         <ListView.View>
                             <GridView>
                                 <!-- <GridViewColumn Header="Controls" CellTemplate="{StaticResource SliderTemplate}"/> -->
-                                <GridViewColumn Width="260" />
+                                <GridViewColumn/>
                             </GridView>
                         </ListView.View>
                     </ListView>
                 </StackPanel>
             </Border>
         </StackPanel>
-        <DockPanel Name="imagePanel" Grid.Column="1">
-            <Image Name="bitmap" Stretch="Fill" Grid.Column="1"/>
+        <DockPanel Name="imagePanel" Grid.Column="1" Margin="5">
+                <Image Name="bitmap" Stretch="Fill"/>
         </DockPanel>
+        
     </Grid>
 </Window>
