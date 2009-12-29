@@ -181,7 +181,7 @@ namespace _3DTools
             Vector3D axis = new Vector3D(diff.Y, diff.X, 0);
             double angle = -Math.Sqrt(Math.Pow(diff.X, 2) + Math.Pow(diff.Y, 2))*10;
 
-            Debug.WriteLine(axis.ToString() + "\t\t" + angle);
+            //Debug.WriteLine(axis.ToString() + "\t\t" + angle);
             if (angle == 0) angle = 0.01;
             if (axis.Length == 0) axis.X = 0.01;
             Quaternion delta = new Quaternion(axis, -angle);

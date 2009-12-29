@@ -166,9 +166,9 @@
                                 Storyboard.TargetName="_modelRotation"
                                 Storyboard.TargetProperty="Quaternion" 
                                 IsAdditive="True" 
-                                Duration="0:0:02" 
+                                Duration="0:0:05" 
                                 DecelerationRatio="1"
-                                FillBehavior="Stop"
+                                FillBehavior="HoldEnd"
                                                  />
                                 
                         <!--
