@@ -45,6 +45,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Caustic.cs" />
     <Compile Include="Helpers.cs" />
   </ItemGroup>
   <ItemGroup>

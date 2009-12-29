@@ -16,7 +16,7 @@ namespace Terry
     public class Helpers
     {
 #if !TRYWPF
-        public static Bitmap myBitmap;
+        //public static Dictionary<string, Bitmap> myBitmaps = new Dictionary<string, Bitmap>();
 #else
         protected static byte[] myBuffer;
         protected static int myStride;
@@ -24,7 +24,11 @@ namespace Terry
         protected static int myHeight;
         protected static int myBitsPerPixel;
 #endif
-        private static string myText;
+        [ThreadStaticAttribute]
+        private static string myCachedText;
+        [ThreadStaticAttribute]
+        private static Bitmap myCacheBitmap;
+
         private static Helpers myLock = new Helpers();
 
         /// <summary>
@@ -37,30 +41,37 @@ namespace Terry
         public static bool TextPoint(string text, double x, double y)
         {
 #if !TRYWPF
-            lock (myLock)
+            if (double.IsNaN(x) || double.IsNaN(y) || x < 0 || y < 0 || y >= 1 || x>=1) 
+                return false;
+            if (text != myCachedText)
             {
-                if (double.IsNaN(x) || double.IsNaN(y) || x < 0 || y < 0 || y >= 1 || x>=1) 
-                    return false;
-
-                if (text != myText && !string.IsNullOrEmpty(text))
+                lock (myLock)
                 {
-                    myText = text;
-                    myBitmap = new Bitmap(1, 1, PixelFormat.Format24bppRgb);
-                    Font font = new Font(FontFamily.GenericSansSerif, 72);
-                    Graphics g = Graphics.FromImage(myBitmap);
-                    SizeF size = g.MeasureString(myText, font);
-                    myBitmap = new Bitmap((int)size.Width, (int)size.Height, PixelFormat.Format24bppRgb);
-                    g = Graphics.FromImage(myBitmap);
-                    g.DrawString(text, font, Brushes.White, 0, 0);
+                    if (text != myCachedText && !string.IsNullOrEmpty(text))
+                    {
+                        myCachedText = text;
+                        //if (!myBitmaps.TryGetValue(text, out myCacheBitmap))
+                        {
+                            myCacheBitmap = new Bitmap(1, 1, PixelFormat.Format24bppRgb);
+                            Font font = new Font(FontFamily.GenericSansSerif, 72);
+                            Graphics g = Graphics.FromImage(myCacheBitmap);
+                            SizeF size = g.MeasureString(text, font);
+                            myCacheBitmap = new Bitmap((int)size.Width, (int)size.Height, PixelFormat.Format24bppRgb);
+                            g = Graphics.FromImage(myCacheBitmap);
+                            g.DrawString(text, font, Brushes.White, 0, 0);
+                            //myBitmaps[text] = myCacheBitmap;
+                        }
+                    }
                 }
-                //scale to unit width
-                int i = (int)(x * (myBitmap.Width - 1));
-                int j = Math.Max(0, myBitmap.Height - 1 - (int)(y * (myBitmap.Width - 1)));
+            }
+            //scale to unit width
+            int i = (int)(x * (myCacheBitmap.Width - 1));
+            int j = Math.Max(0, myCacheBitmap.Height - 1 - (int)(y * (myCacheBitmap.Width - 1)));
 
-                //else scale to unit height
-                //int i = Math.Min(myBitmap.Width-1, (int)(x * (myBitmap.Height- 1)));
-                //int j = Math.Max(0, (int)(myBitmap.Height - 1 - y * (myBitmap.Height - 1)));
-                return myBitmap.GetPixel(i,j).R > 0;
+            //else scale to unit height
+            //int i = Math.Min(myCacheBitmap.Width-1, (int)(x * (myCacheBitmap.Height- 1)));
+            //int j = Math.Max(0, (int)(myCacheBitmap.Height - 1 - y * (myCacheBitmap.Height - 1)));
+            return myCacheBitmap.GetPixel(i, j).R > 0;
 #else
             lock (myLock)
             {
@@ -90,7 +101,6 @@ namespace Terry
                 System.Diagnostics.Debug.Assert(myBitsPerPixel >= 8, "next line doesn't handle more than one pixel per byte");
                 return myBuffer[myBitsPerPixel/8 * ( (int)(x * (myWidth-1)) + myWidth * Math.Min(myHeight - 1, (int)(y * (myWidth/*not height*/ - 1))))] > 0;  
 #endif
-            }
         }
     }
 
