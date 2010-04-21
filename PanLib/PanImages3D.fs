@@ -77,6 +77,21 @@ let invertMand invradiusarg maxiter v = 1.0/ StaticMandlebrot maxiter (applyPanT
     maxiter = maxiter + 4; // *maxiter;
 }*)
 
+//from http://www.skytopia.com/project/fractal/2mandelbulb.html#epilogue
+let power = ("Power", 1, 10, 2)
+let Mandlebulb power maxiter (p: Vector3D) =
+    let rec MandInner (z: Vector3D) (c: Vector3D) iter =
+        if (iter > maxiter || z.LengthSquared > 4.0)
+        then ((float)iter / (float)(maxiter-2))
+        else     
+            let zPowerN n (p: Vector3D) = 
+                let theta = atan2 (sqrt (p.X*p.X+p.Y*p.Y)) p.Z
+                let phi = atan2 p.Y p.X
+                in Math.Pow(p.Length, n) * new Vector3D( sin(theta*n) * cos(phi*n) , sin(theta*n) * sin(phi*n) , cos(theta*n) )
+            in MandInner ((zPowerN power p) + c) c (iter+1)
+    in MandInner (new Vector3D()) p 1
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Other shapes
 (*

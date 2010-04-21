@@ -1,4 +1,6 @@
 ﻿
+module DrawImage
+
 open Pan
 
 //------ DRAW FUNCTION INTO BITMAP ----------

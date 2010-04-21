@@ -4,8 +4,7 @@
     xmlns:c="clr-namespace:Terry"
     xmlns:b="clr-namespace:Terry;assembly=BrillWpf"
     Title="Terry's PanBrowser" Height="400" Width="700" 
-        Loaded="Window_Loaded" SizeChanged="Window_SizeChanged" MouseWheel="Window_MouseWheel"
->
+        Loaded="Window_Loaded" SizeChanged="Window_SizeChanged" MouseWheel="Window_MouseWheel" KeyUp="Window_KeyUp">
     
     <Window.Resources>
 

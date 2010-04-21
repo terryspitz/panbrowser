@@ -10,6 +10,7 @@ namespace Terry
 
         public string Name { get; set; }
         public object Value { get; set; }
+        virtual public void Bump() { }
 
         #region IComparable Members
 
@@ -39,6 +40,12 @@ namespace Terry
         public int Val { get { return (int)Value; } set { Value = value; } }
         public int From { get; set; }
         public int To { get; set; }
+        override public void Bump()
+        {
+            Val += Math.Min((To - From) / 10, 1);
+            if (Val > To)
+                Val = From;
+        }
     }
     public class SliderText : SliderAttribute
     {
@@ -51,5 +58,11 @@ namespace Terry
         public double Val { get { return (double)Value; } set { Value = value; } }
         public double From { get; set; }
         public double To { get; set; }
+        override public void Bump()
+        {
+            Val += Math.Min((To - From) / 20, 1);
+            if (Val > To)
+                Val = From;
+        }
     }
 }

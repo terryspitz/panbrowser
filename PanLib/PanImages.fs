@@ -231,7 +231,7 @@ let tiletext textarg =
     //scaleXY 1.0 0.5 
     (tile (scaleXY 1.0 2.0 
     //(translate 0.0 -0.2 
-    (text textarg)
+        (text textarg)
     //)
     ))
 //let inverttext = radialInvert tiletext

@@ -19,7 +19,7 @@
     <ManifestKeyFile>PanBrowser2_TemporaryKey.pfx</ManifestKeyFile>
     <GenerateManifests>true</GenerateManifests>
     <SignManifests>true</SignManifests>
-    <StartupObject>PanBrowser2.App</StartupObject>
+    <StartupObject>Terry.App</StartupObject>
     <ApplicationIcon>Terrys.bumpSwirl2s.ico</ApplicationIcon>
     <TargetFrameworkSubset>Client</TargetFrameworkSubset>
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
@@ -35,7 +35,7 @@
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>3</ApplicationRevision>
+    <ApplicationRevision>4</ApplicationRevision>
     <ApplicationVersion>1.1.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -59,11 +59,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FSharp.Core, Version=1.9.6.16, Culture=neutral, PublicKeyToken=a19089b1c74d0809, processorArchitecture=MSIL" />
+    <Reference Include="FSharp.Core, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Drawing" />
     <Reference Include="System.XML" />
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
@@ -73,6 +74,7 @@
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+      <CustomToolNamespace>Terry</CustomToolNamespace>
     </ApplicationDefinition>
     <Page Include="PanWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -88,6 +90,7 @@
       <DependentUpon>PanWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Win32.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppDesigner Include="Properties\" />
@@ -137,9 +140,6 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="littlePolarChecker.jpg" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

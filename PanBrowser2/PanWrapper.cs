@@ -11,7 +11,7 @@ namespace Terry
 {
     public class PanWrapper
     {
-        //FastFunc<Pan.Point, Pan.Color> ImageType;
+        //FSharpFunc<Pan.Point, Pan.Color> ImageType;
 
         protected Dictionary<string, Type> _panTypes;
 
@@ -23,7 +23,7 @@ namespace Terry
         {
             _panTypes = new Dictionary<string, Type>();
             _panTypes[typeof(Pan).ToString()] = typeof(Pan);
-            _panTypes[typeof(Terrys).ToString()] = typeof(Terrys);
+            _panTypes[typeof(TerryImages).ToString()] = typeof(TerryImages);
             _panTypes[typeof(Pan3D).ToString()] = typeof(Pan3D);
             GetPanFunctions();
             Images.Sort();
@@ -238,7 +238,7 @@ namespace Terry
         /// including binding values from controls/sliders into the 
         /// example function types include:
         /// Color simpleImage(Point)
-        /// FastFunc<Point, Color> funcImage()
+        /// FSharpFunc<Point, Color> funcImage()
         /// 
         /// example images needing binding are:
         /// Color image(double, Point)
@@ -247,10 +247,10 @@ namespace Terry
         /// <param name="image"></param>
         /// <param name="sliders"></param>
         /// <returns></returns>
-        //public FastFunc<PointType, ReturnType> GetImageFunction<PointType, ReturnType>(string image, IList<SliderAttribute> sliders)
+        //public FSharpFunc<PointType, ReturnType> GetImageFunction<PointType, ReturnType>(string image, IList<SliderAttribute> sliders)
         public object GetImageFunction(string image, IList<SliderAttribute> sliders)
         {
-            //FastFunc<PointType, ReturnType> imageFunction = null;
+            //FSharpFunc<PointType, ReturnType> imageFunction = null;
             Type typeFrom = null, typeTo = null;
 
             var ret = GetMethod(image);
@@ -292,11 +292,11 @@ namespace Terry
 
                 //Point -> bool | Double | Color | Point
                 if (typeFrom == typeof(Pan.Point) && typeTo == typeof(bool))
-                    return DrawImage.boolToColImage((FastFunc<Pan.Point, bool>)method.Invoke(null, paramValues.ToArray()));
+                    return DrawImage.boolToColImage((FSharpFunc<Pan.Point, bool>)method.Invoke(null, paramValues.ToArray()));
                 else if (typeFrom == typeof(Pan.Point) && typeTo == typeof(double))
-                    return DrawImage.doubleToColImage((FastFunc<Pan.Point, double>)method.Invoke(null, paramValues.ToArray()));
+                    return DrawImage.doubleToColImage((FSharpFunc<Pan.Point, double>)method.Invoke(null, paramValues.ToArray()));
                 else if (typeFrom == typeof(Pan.Point) && typeTo == typeof(Pan.Color))
-                    return (FastFunc<Pan.Point, Pan.Color>)method.Invoke(null, paramValues.ToArray());
+                    return (FSharpFunc<Pan.Point, Pan.Color>)method.Invoke(null, paramValues.ToArray());
                 else
                     throw new Exception("image " + image + " wrong type");
             }
@@ -341,27 +341,27 @@ namespace Terry
         /// 
         /// example function types include:
         /// Point simpleTransform(Point) 
-        /// FastFunc<Point, Point> pointTransform()
-        /// Color funcTranform(double s, FastFunc<Point, Color> image, Point p)
+        /// FSharpFunc<Point, Point> pointTransform()
+        /// Color funcTranform(double s, FSharpFunc<Point, Color> image, Point p)
         /// 
         /// example function types needing param binding include:
         /// Point pointTransform1(double, Point)
         /// Point pointTransform2(double, double, Point)
-        /// FastFunc<Point, Point> pointTransform3(double)
-        /// FastFunc<Point, Point> pointTransform4(double, double)
-        /// Color funcTranform(double s, FastFunc<Point, Color> image, Point p)
+        /// FSharpFunc<Point, Point> pointTransform3(double)
+        /// FSharpFunc<Point, Point> pointTransform4(double, double)
+        /// Color funcTranform(double s, FSharpFunc<Point, Color> image, Point p)
 
         /// </summary>
         /// <param name="transform"></param>
         /// <param name="image"></param>
         /// <param name="sliders"></param>
         /// <returns></returns>
-        public FastFunc<Pan.Point, Pan.Color> GetTransformFunction(string transform, FastFunc<Pan.Point, Pan.Color> image, IList<SliderAttribute> sliders)
+        public FSharpFunc<Pan.Point, Pan.Color> GetTransformFunction(string transform, FSharpFunc<Pan.Point, Pan.Color> image, IList<SliderAttribute> sliders)
         {
             if (string.IsNullOrEmpty(transform) || transform == None)
                 return image;
 
-            FastFunc<Pan.Point, Pan.Color> imageFunction = null;
+            FSharpFunc<Pan.Point, Pan.Color> imageFunction = null;
 
             var ret = GetMethod(transform);
             Type panType = ret.Item1;
@@ -392,7 +392,7 @@ namespace Terry
                 Tuple<Type, Type> types = FSharpType.GetFunctionElements(method.ReturnType);
                 if (types.Item1 != typeof(Pan.Point) || types.Item2 != typeof(Pan.Point))
                     throw new Exception("transform " + transform + " wrong type");  //not an image or transform
-                imageFunction = Pan.transformImage((FastFunc<Pan.Point, Pan.Point>)method.Invoke(null, paramValues.ToArray()), image);
+                imageFunction = Pan.transformImage((FSharpFunc<Pan.Point, Pan.Point>)method.Invoke(null, paramValues.ToArray()), image);
             }
             else
                 //'Real' higher-order transform function: (Point -> Col) -> Point -> Col
@@ -427,20 +427,20 @@ namespace Terry
                         Debug.Assert(isPointType(typesRet.Item1) && isReturnType(typesRet.Item2) || typesIn.Item2.IsGenericParameter);
                         paramValues.Add(image);
                         if (typesIn.Item1 == typeof(Pan.Point) && typesIn.Item2 == typeof(Boolean))
-                            imageFunction = DrawImage.boolToColImage((FastFunc<Pan.Point, bool>)method.Invoke(null, paramValues.ToArray()));
+                            imageFunction = DrawImage.boolToColImage((FSharpFunc<Pan.Point, bool>)method.Invoke(null, paramValues.ToArray()));
                         else if (typesIn.Item1 == typeof(Pan.Point) && typesIn.Item2 == typeof(Double))
-                            imageFunction = DrawImage.doubleToColImage((FastFunc<Pan.Point, Double>)method.Invoke(null, paramValues.ToArray()));
+                            imageFunction = DrawImage.doubleToColImage((FSharpFunc<Pan.Point, Double>)method.Invoke(null, paramValues.ToArray()));
                         else if (typesIn.Item1 == typeof(Pan.Point) && typesIn.Item2 == typeof(Pan.Color))
-                            imageFunction = (FastFunc<Pan.Point, Pan.Color>)method.Invoke(null, paramValues.ToArray());
+                            imageFunction = (FSharpFunc<Pan.Point, Pan.Color>)method.Invoke(null, paramValues.ToArray());
                         else if (typesIn.Item1 == typeof(Pan.Point) && typesIn.Item2.IsGenericParameter)
-                            imageFunction = (FastFunc<Pan.Point, Pan.Color>)method.MakeGenericMethod(typeof(Pan.Color)).Invoke(null, paramValues.ToArray());
+                            imageFunction = (FSharpFunc<Pan.Point, Pan.Color>)method.MakeGenericMethod(typeof(Pan.Color)).Invoke(null, paramValues.ToArray());
                     }
             /*
             try
                 {
                     MethodInfo genericMethodInfo = method .MakeGenericMethod(new Type[] { typeof(Pan.Color) });
                     object newImageFn = genericMethodInfo.Invoke(null, new object[] { imageFunction });
-                    imageFunction = newImageFn as FastFunc<PointType, Pan.Color>;
+                    imageFunction = newImageFn as FSharpFunc<PointType, Pan.Color>;
                 }
                 catch (Exception)
                 {
@@ -456,21 +456,21 @@ namespace Terry
         /// Color textH(string, Point)
         /// then
         /// Curry(textH, { String }, { "hello "))
-        /// returns an F# FastFunc&lt;Point, Color&gt; which calls testH with first arg "hello "
+        /// returns an F# FSharpFunc&lt;Point, Color&gt; which calls testH with first arg "hello "
         /// </example>
         /// </summary>
         /// <param name="method"></param>
         /// <param name="paramTypes"></param>
         /// <param name="paramValues"></param>
         /// <returns></returns>
-        protected static FastFunc<FromType, ToType> Curry<FromType, ToType>(MethodInfo method, Type[] paramTypes, object[] paramValues)
+        protected static FSharpFunc<FromType, ToType> Curry<FromType, ToType>(MethodInfo method, Type[] paramTypes, object[] paramValues)
         {
             if(paramTypes.Length==1)
                 return (Converter<FromType, ToType>)Delegate.CreateDelegate(typeof(Converter<FromType, ToType>), method);
 
             DynamicMethod curryFn = new DynamicMethod("curryFn", typeof(ToType), new Type[] { typeof(FromType) });
             CreateCurryFunction(method, paramTypes, paramValues, curryFn);
-            return FuncConvert.ToFastFunc(
+            return FuncConvert.ToFSharpFunc(
                     (Converter<FromType, ToType>)curryFn.CreateDelegate(typeof(Converter<FromType, ToType>))
                 );
         }
@@ -509,7 +509,7 @@ namespace Terry
         /// </summary>
         /// <typeparam name="FromType"></typeparam>
         /// <typeparam name="ToType"></typeparam>
-        class BadCurry<FromType, ToType> : FastFunc<FromType, ToType>
+        class BadCurry<FromType, ToType> : FSharpFunc<FromType, ToType>
         {
             public BadCurry(MethodInfo m, object[] paramValues)
             {
@@ -529,7 +529,7 @@ namespace Terry
             private object[] myParams;
         }
 
-        internal FastFunc<Pan.Point, Pan.Color> StandardTransforms(FastFunc<Pan.Point, Pan.Color> image, double size, double rotation, double x, double y)
+        internal FSharpFunc<Pan.Point, Pan.Color> StandardTransforms(FSharpFunc<Pan.Point, Pan.Color> image, double size, double rotation, double x, double y)
         {
             //image = Pan.transformImage(Pan.translateP(x / 2, y / 2), image);
             image = DrawImage.scale(size, image);

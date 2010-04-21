@@ -13,6 +13,7 @@ using System.Windows.Markup;
 using System.Xml;
 using System.Windows.Media.Media3D;
 using System.Windows.Media.Animation;
+using System.Windows.Threading;
 
 namespace Terry
 {
@@ -26,7 +27,7 @@ namespace Terry
         protected ComboBox transformCombo1;
 
         //a delegate to hold the simple pan function
-        protected FastFunc<Pan.Point, Pan.Color> myImageFn;
+        protected FSharpFunc<Pan.Point, Pan.Color> myImageFn;
         protected int myRequestNumber = 0;
         static protected int minstep = 4;        //stored step size to start drawing with
 
@@ -40,14 +41,43 @@ namespace Terry
         protected BrillWpf.BrillDockPanel brill = null;
         protected BrillRenderer brillRenderer;
 
+        protected WriteableBitmap bitmapSource;
+        protected TimingStore timings = new TimingStore();
+        
+        public bool screensaver = false;
+        protected DispatcherTimer timer;
+
+        protected readonly string Brill3D = "Brill3D";
+
         protected class Request
         {
-            public int number;
+            public int requestNo;
             public PanBrowser _this;
             public int width, height, scale;
             public delegate bool IsCancelled(int reqno);
             public IsCancelled cancelCallback;
         }
+
+        protected class TimingStore
+        {
+            static int history = 10;
+            protected int[] array = new int[history];
+            protected int next = 0;
+            public void add(int i)
+            {
+                lock (this)
+                {
+                    array[next] = i;
+                    next = (next+ 1) % history;
+                }
+            }
+            public int getLast()
+            {
+                lock (this)
+                    return array[next];
+            }
+        }
+
 
         public PanBrowser()
         {
@@ -78,8 +108,11 @@ namespace Terry
                 s.ValueChanged += Slider_ValueChanged;
 
             //after cloning
-            panWrapper.Images.Add("Brill3D");
+            panWrapper.Images.Add(Brill3D);
             imageCombo1.ItemsSource = panWrapper.Images;
+
+            bitmapSource = new WriteableBitmap((int)imagePanel.ActualWidth, (int)imagePanel.ActualHeight, 96.0, 96.0, PixelFormats.Rgb24, null);
+            bitmap.Source = bitmapSource;
 
             RegistryKey k = Registry.CurrentUser.OpenSubKey("Software\\Terry\\PanBrowser", true);
             if (k != null)
@@ -87,13 +120,21 @@ namespace Terry
                 imageCombo1.SelectedValue = k.GetValue("image", panWrapper.Images[0]);
                 transformCombo1.SelectedValue = k.GetValue("transform", panWrapper.Transforms[0]);
             }
-            else
+            if(imageCombo1.SelectedIndex==-1)
             {
-                imageCombo1.SelectedValue = "Terrys.bumpSwirl";
-                transformCombo1.SelectedValue = "Terrys.star2";
+                imageCombo1.SelectedValue = "TerryImages.bumpSwirl";
+                transformCombo1.SelectedValue = "TerryImages.star2";
             }
 
             Console.WriteLine(string.Format("{0} images; {1} transforms", panWrapper.Images.Count, panWrapper.Transforms.Count));
+
+            if(screensaver)
+            {
+                timer = new DispatcherTimer();
+                timer.Tick += new EventHandler(Tick);
+                timer.Interval = TimeSpan.FromMilliseconds(100);
+                timer.Start();
+            }
         }
 
         
@@ -102,13 +143,13 @@ namespace Terry
             Interlocked.Increment(ref myRequestNumber);
             Request r = new Request();
             r._this = this;
-            r.number = myRequestNumber;
+            r.requestNo = myRequestNumber;
             r.width = (int)imagePanel.ActualWidth;
             r.height = (int)imagePanel.ActualHeight;
             r.scale = 0;// (int)(imageSizeSlider.Value * 2) - 10;
             r.cancelCallback = IsCancelled;
-            Draw(minstep-1, r.number, r.width, r.height, r.scale);  //do a quick one in this thread before returning
-#if !SINGLETHREAD
+            //Draw(minstep-1, r.number, r.width, r.height, r.scale);  //do a quick one in this thread before returning
+#if !DOIT
             ThreadPool.QueueUserWorkItem(new WaitCallback(ThreadProc), r);
 #else
             ThreadProc(r);
@@ -122,15 +163,18 @@ namespace Terry
 
         static void ThreadProc(Object stateInfo)
         {
+            System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss.fff"));
             Request r = (Request)stateInfo;
-            if (r.cancelCallback(r.number))
+            if (r.cancelCallback(r.requestNo))
                 return;
             //iterate through successively higher resolutions, -1 being four bitmap pixes per screen pixel for antialiasing
             //remember the step to start with that's fast enough for recalculation e.g. resizing operations
-            for (int step = minstep; step >= -1; step--)    
+            const int maxstep = 0;
+            for (int step = minstep; step >= maxstep; step--)
+                //int step = 0;
             {
-                int elapsed = r._this.Draw(step, r.number, r.width, r.height, r.scale);
-                if (r.number != r._this.myRequestNumber)
+                int elapsed = r._this.Draw(step, r.requestNo, r.width, r.height, r.scale);
+                if (r.requestNo != r._this.myRequestNumber)
                     break;
                 if (elapsed < 50 && minstep>step)  //assume 200ms is quick enough not to notice
                     minstep = step;
@@ -155,9 +199,16 @@ namespace Terry
                     int pixels;
                     lock (result.Item1)
                     {
+                        timings.add(result.Item6);
                         if (bitmap.Dispatcher.Thread == Thread.CurrentThread)
                         {
+#if !NEW
                             bitmap.Source = BitmapSource.Create(result.Item2, result.Item3, 96.0, 96.0, result.Item4, null, result.Item1, result.Item5);
+#else
+                            bitmapSource.WritePixels(
+                                new Int32Rect(0, 0, result.Item2, result.Item3), result.Item1, result.Item5, 0
+                                );
+#endif
                         }
                         else
                         {
@@ -165,7 +216,13 @@ namespace Terry
                             bitmap.Dispatcher.Invoke(
                                 (Action<Tuple<byte[], int, int, PixelFormat, int, int>>)((Tuple<byte[], int, int, PixelFormat, int, int> request) =>
                                     {
+#if !NEW
                                         bitmap.Source = BitmapSource.Create(result.Item2, result.Item3, 96.0, 96.0, result.Item4, null, result.Item1, result.Item5);
+#else
+                                        bitmapSource.WritePixels(
+                                            new Int32Rect(0, 0, result.Item2, result.Item3), result.Item1, result.Item5, 0
+                                            );
+#endif
                                     }
                                     ), result);
                         }
@@ -218,7 +275,7 @@ namespace Terry
             {
                 if (myImageName == null)
                     return;
-                else if (myImageName == "Brill3D" || myImageName.StartsWith("Pan3D"))
+                else if (myImageName == Brill3D || myImageName.StartsWith("Pan3D"))
                 {
                     if (brill == null)
                     {
@@ -231,7 +288,7 @@ namespace Terry
                     if (myImageName.StartsWith("Pan3D"))
                     {
                         List<SliderAttribute> sliders = DoSliders(myImageName, myAttributes[0]);
-                        Converter<Vector3D, double> panFn = (FastFunc<Vector3D, double>)panWrapper.GetImageFunction(myImageName, sliders);
+                        Converter<Vector3D, double> panFn = (FSharpFunc<Vector3D, double>)panWrapper.GetImageFunction(myImageName, sliders);
                         Sampler sampler = new Sampler(panFn);
                         sampler.Resolution = 10;
                         sampler.OnTimerTick(10);
@@ -243,7 +300,7 @@ namespace Terry
                         brill.SetGeometry(r.Mesh);
 
                     }
-                    else if (myImageName == "Brill3D")
+                    else if (myImageName == Brill3D)
                     {
                         if (brillRenderer == null)
                         {
@@ -253,7 +310,7 @@ namespace Terry
                         }
                         brill.Fill(brillRenderer);
                     }
-                    myImageFn = (FastFunc<Pan.Point, Pan.Color>)panWrapper.GetImageFunction("Pan.wavyRings", new List<SliderAttribute>());
+                    myImageFn = (FSharpFunc<Pan.Point, Pan.Color>)panWrapper.GetImageFunction("Pan.wavyRings", new List<SliderAttribute>());
                 }
                 else
                 {
@@ -261,15 +318,15 @@ namespace Terry
                         brill.Visibility = Visibility.Hidden;
 
                     List<SliderAttribute> sliders = DoSliders(myImageName, myAttributes[0]);
-                    myImageFn = (FastFunc<Pan.Point, Pan.Color>)panWrapper.GetImageFunction(myImageName, sliders);
-                    myImageFn = (FastFunc<Pan.Point, Pan.Color>)panWrapper.StandardTransforms(
+                    myImageFn = (FSharpFunc<Pan.Point, Pan.Color>)panWrapper.GetImageFunction(myImageName, sliders);
+                    myImageFn = (FSharpFunc<Pan.Point, Pan.Color>)panWrapper.StandardTransforms(
                         myImageFn, imageSizeSlider.Value, imageRotateSlider.Value*36, imageXSlider.Value, imageYSlider.Value);
 
                     if (myTransformName != panWrapper.None && !string.IsNullOrEmpty(myTransformName))
                     {
                         sliders = DoSliders(myTransformName, myAttributes[1]);
                         myImageFn = panWrapper.GetTransformFunction(myTransformName, myImageFn, sliders);
-                        myImageFn = (FastFunc<Pan.Point, Pan.Color>)panWrapper.StandardTransforms(
+                        myImageFn = (FSharpFunc<Pan.Point, Pan.Color>)panWrapper.StandardTransforms(
                             myImageFn, transformStandardSliders[0].Value, transformStandardSliders[1].Value * 36,
                             -transformStandardSliders[2].Value, -transformStandardSliders[3].Value);
                     }
@@ -396,7 +453,7 @@ namespace Terry
                 DoubleAnimation myDoubleAnimation = new DoubleAnimation();
                 myDoubleAnimation.From = s.Minimum;
                 myDoubleAnimation.To = s.Maximum;
-                myDoubleAnimation.Duration = new Duration(TimeSpan.FromSeconds(10));
+                myDoubleAnimation.Duration = new Duration(TimeSpan.FromSeconds(20));
                 myDoubleAnimation.AccelerationRatio = 0.2;
                 myDoubleAnimation.DecelerationRatio = 0.2;
                 myDoubleAnimation.RepeatBehavior = RepeatBehavior.Forever;
@@ -411,5 +468,38 @@ namespace Terry
             }
         }
 
+        private void Window_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (screensaver)
+            {
+                //Application.Current.Shutdown();
+            }
+        }
+
+        private void Window_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (screensaver)
+            {
+                if (e.Key == System.Windows.Input.Key.Down)
+                    imageCombo1.SelectedIndex = (imageCombo1.SelectedIndex + 1)%imageCombo1.Items.Count;
+                else if (e.Key == System.Windows.Input.Key.Up)
+                    imageCombo1.SelectedIndex = (imageCombo1.SelectedIndex + imageCombo1.Items.Count -1) % imageCombo1.Items.Count;
+                else
+                    Application.Current.Shutdown();
+            }
+        }
+
+        private void Tick(object s, EventArgs a)
+        {
+            if (myImageName == null || myImageName==Brill3D)
+                return;
+
+            List<SliderAttribute> sliders = DoSliders(myImageName, myAttributes[0]);
+            if (sliders.Count > 0)
+            {
+                sliders[0].Bump();
+                SetImage();
+            }
+        }
     }
 }

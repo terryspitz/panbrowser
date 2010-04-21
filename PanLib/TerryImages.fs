@@ -1,8 +1,11 @@
 ﻿
-module Terrys
+module TerryImages
 
 open Pan
 
+open System
+open Terry
+open System.Windows.Media
 
 let rainbow = [| red; magenta; blue; cyan; green; yellow; //look! it's an array.
     darken 0.5 red; darken 0.5 magenta; darken 0.5 blue; darken 0.5 cyan; darken 0.5 green; darken 0.5 yellow  |]
