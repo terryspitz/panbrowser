@@ -180,12 +180,51 @@ let blur image =
 //caustic transform
 let time = ("Time", 0.0, 20.0, 0.0)
 let prescale = ("Prescale", 0.0, 5.0, 1.0)
-let postscale = ("Postscale", 0.0, 5.0, 1.0)
-let bumpArg = ("Bump", 0.0, 5.0, 1.0)
+let postscale = ("Postscale", 0.0, 1.0, 0.2)
+let bumpArg = ("Bump", 0.0, 2.0, 0.2)
 
-let caustic time prescale postscale bumpArg (p : Point) = 
-    {   
-        x=p.x+Terry.Caustic.Instance.Calc1D(p.x, p.y, 0.0, 0, time, prescale*10.0, postscale*200.0, bumpArg/1000.0);
-        y=p.y+Terry.Caustic.Instance.Calc1D(p.x, p.y, 0.0, 1, time, prescale*10.0, postscale*200.0, bumpArg/1000.0) 
-    }
+let caustic time prescale postscale bumpArg 
+    c00 c01 c10 c11
+    (p : Point) = 
+    let speed = 0.02
+    let wave i j x y = cos (Math.PI * 2.0 * ((x + speed * time) * (double)i + (y + speed * time) * (double)j))
+    let WaveHeight x y = 
+        (c00+0.5) * (wave 0 0 x y)
+        + (c01+0.5) * (wave 0 1 x y)
+        + (c10+0.5) * (wave 1 0 x y)
+        + (c11+0.5) * (wave 1 1 x y)
+    let dx = postscale * (WaveHeight (p.x * prescale) (p.y * prescale) - WaveHeight ((p.x + bumpArg) * prescale) (p.y * prescale) )
+    let dy = postscale * (WaveHeight (p.x * prescale) (p.y * prescale) - WaveHeight (p.x*prescale) ((p.y+bumpArg) * prescale))
+    in
+        { x=p.x+dx; y=p.y+dy }
+
+//other stuff
     
+let timestable p = 
+    let i = (int)(p.x*5.0) + Math.Sign(p.x)
+    let j = (int)(p.y*5.0) + Math.Sign(p.y)
+    let xx = mapTo01(p.x*5.0)
+    let yy = mapTo01(p.y*5.0)
+    text ((i*j).ToString()) { x=xx; y=yy; }
+
+//escher (hyperbolic?) transform 
+//from http://blogs.msdn.com/b/satnam_singh/archive/2010/01/06/an-f-functional-geometry-description-of-escher-s-fish.aspx
+//where panbrowser gets a mention!
+
+let escherSquare p =
+    let xx = log (1.0 / (2.0-abs p.x*2.0))
+    let yy = log (1.0 / (2.0-abs p.y*2.0))
+    in
+    { x= mapTo01 xx; y= mapTo01 yy }
+
+let cycle p =
+    if(p.x>0.0) then 
+        if(p.y>0.0) then 
+            p
+        else
+            { x = -p.y; y= p.x }  
+    else
+        if(p.y>0.0) then
+            { x = p.y; y= -p.x }  
+        else
+            { x = -p.x; y= -p.y }  

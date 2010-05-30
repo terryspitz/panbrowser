@@ -8,6 +8,7 @@ module Pan
 open System
 open Terry
 open System.Windows.Media
+open System.Drawing
 
 (* ----------- 2 What is an image? ------------- *)
 
@@ -66,6 +67,9 @@ type Color = { r: float; g: float; b: float; a: float }
 type ImageC = Point -> Color
 
 let SysColor (c : System.Windows.Media.Color) = 
+    let bf (b:byte) = (float)b/255.0 in
+    { r=bf c.R; g=bf c.G; b=bf c.B; a=bf c.A }
+let DrawingColor (c : System.Drawing.Color) = 
     let bf (b:byte) = (float)b/255.0 in
     { r=bf c.R; g=bf c.G; b=bf c.B; a=bf c.A }
 
@@ -135,9 +139,9 @@ let rotateP th p = { x= p.x * cos th - p.y * sin th;
 //sliders for the above
 let dx = ("Translate x", -5.0, 5.0, 0.0)
 let dy = ("Translate y", -5.0, 5.0, 0.0)
-let sx = ("Scale x", -5.0, 5.0, 1.0)
-let sy = ("Scale y", -5.0, 5.0, 1.0)
-let s = ("Scale", -5.0, 5.0, 1.0)
+let sx = ("Scale x", -2.0, 10.0, 5.0)
+let sy = ("Scale y", -2.0, 10.0, 5.0)
+let s = ("Scale", -2.0, 10.0, 5.0)
 let th = ("Rotation", -2.0, 2.0, 0.0)
                         
 type ImageTranform<'a> = (Point -> 'a) -> (Point -> 'a)
@@ -157,15 +161,14 @@ let rotate deg           image p = image (rotateP -(deg/360.0*2.0*Math.PI) p)
 
 //try it:
 
-let swirlP r p = rotateP (log ((distO p)+1e-6) * r / 5.0) p
+let swirl1 r p = rotateP (log ((distO p)+1e-6) * r / 5.0) p
+let swirl2 r p = rotateP (log ((distO p)+1e-6) * r / 5.0) p
+let swirl3 swirlArg = (fun p -> rotateP ((exp -(pown (distO p) 1)) * (swirlArg/ (float)5.0)) p)
 
-let swirl swirlArg image p = image (swirlP swirlArg p)
-let swirlT r = transformImage (fun p -> rotateP (log ((distO p)+1e-6) * r / 5.0) p)
-let swirl2 swirlArg = applyPointTransform (fun p -> rotateP ((exp -(pown (distO p) 1)) * (swirlArg/ (float)5.0)) p)
+let swirlArg = ("Swirl",-20.0, 20.0, 1.0)
 
 //should be: let swirlVstrip = swirl ((float )(getSlider "swirl" -10 10 10)) vstrip )    but the compiler precaches the silder value
-let swirlArg = ("Swirl",-20.0, 20.0, 1.0)
-let swirlVstrip swirlArg = swirl swirlArg vstrip 
+//let swirlVstrip swirlArg = swirl swirlArg vstrip 
 
 let unitCircle p = distO p < 1.0
 let unitboxCentered = translate -0.5 -0.5 unitbox
@@ -241,14 +244,9 @@ let circleTranformPolar polar =
     {x=snd polar % System.Math.PI; y= fst polar % System.Math.PI}
 
 let circleTranform p = circleTranformPolar (toPolar p)
-//let circleText = transformImage circleTranform tiletext
 
 let spiral swirlArg p = (fst p + (((swirlArg * snd p) % System.Math.PI)/System.Math.PI), snd p)
 let spiralTranform swirlArg p = circleTranformPolar (spiral swirlArg (toPolar p))
-//let spiralText = transformImage spiralTranform tiletext
-
-let swirlText swirlArg textarg = 
-    swirl swirlArg (tiletext textarg) 
 
 let textCircles textarg = 
     tile ( translate 0.5 0.5
@@ -257,9 +255,6 @@ let textCircles textarg =
              (condC unitCircle (canvas green) (canvas invisible)))
     )
 
-(*let picture p = 
-    let (c : float[]) = PanUI.Images.PictureImage("pic1", p.x, p.y)
-    in { r=arr.get c 0; g=arr.get c 1; b=arr.get c 2; a=arr.get c 3 }
-*)    
-(* let radInvertPic = radInvert picture *)
+let image filename p = DrawingColor (Terry.Helpers.ImagePoint(filename, p.x, p.y) )
+let filename = ("Filename", "escher fish 2.png")
 

@@ -23,8 +23,8 @@ namespace Terry
     public partial class PanBrowser : Window
     {
         protected string myImageName;
-        protected string myTransformName;
-        protected ComboBox transformCombo1;
+        protected List<ComboBox> myTransformCombos = new List<ComboBox>();
+        protected string myImageXaml;
 
         //a delegate to hold the simple pan function
         protected FSharpFunc<Pan.Point, Pan.Color> myImageFn;
@@ -35,8 +35,6 @@ namespace Terry
         protected ShowStatus StatusEvent { get; set; }
         protected PanWrapper panWrapper = new PanWrapper();
         protected List<ObservableCollection<SliderAttribute>> myAttributes = new List<ObservableCollection<SliderAttribute>>();
-        //protected SliderDouble sizeSlider = new SliderDouble("Size", -10, 10, 0);
-        protected Slider[] transformStandardSliders = new Slider[4];
 
         protected BrillWpf.BrillDockPanel brill = null;
         protected BrillRenderer brillRenderer;
@@ -91,40 +89,18 @@ namespace Terry
             myAttributes.Add(imageAttributes);
 
             //clone the basic image combo and controls to create the transforms combo/controls
-            ObservableCollection<SliderAttribute> transformAttributes = new ObservableCollection<SliderAttribute>();
-            FrameworkElement transform1 = CloneModel(imagecontrols);
-            designerPanel.Children.Add(transform1);
-            transformCombo1 = (ComboBox)transform1.FindName("transformCombo1");
-            transformCombo1.SelectionChanged += TransformCombo1_SelectionChanged;
-            transformCombo1.ItemsSource = panWrapper.Transforms;
-            ((ListView)transform1.FindName("transformSliderList")).ItemsSource = transformAttributes;
-            myAttributes.Add(transformAttributes);
-
-            transformStandardSliders[0] = (Slider)transform1.FindName("transformSizeSlider");
-            transformStandardSliders[1] = (Slider)transform1.FindName("transformRotateSlider");
-            transformStandardSliders[2] = (Slider)transform1.FindName("transformXSlider");
-            transformStandardSliders[3] = (Slider)transform1.FindName("transformYSlider");
-            foreach (Slider s in transformStandardSliders)
-                s.ValueChanged += Slider_ValueChanged;
+            myImageXaml = XamlWriter.Save(imagecontrols);
+            AddTransformPanel(0);
 
             //after cloning
             panWrapper.Images.Add(Brill3D);
             imageCombo1.ItemsSource = panWrapper.Images;
+            RemoveTransform.Visibility = System.Windows.Visibility.Hidden; //not valid for image, only transforms
 
             bitmapSource = new WriteableBitmap((int)imagePanel.ActualWidth, (int)imagePanel.ActualHeight, 96.0, 96.0, PixelFormats.Rgb24, null);
             bitmap.Source = bitmapSource;
 
-            RegistryKey k = Registry.CurrentUser.OpenSubKey("Software\\Terry\\PanBrowser", true);
-            if (k != null)
-            {
-                imageCombo1.SelectedValue = k.GetValue("image", panWrapper.Images[0]);
-                transformCombo1.SelectedValue = k.GetValue("transform", panWrapper.Transforms[0]);
-            }
-            if(imageCombo1.SelectedIndex==-1)
-            {
-                imageCombo1.SelectedValue = "TerryImages.bumpSwirl";
-                transformCombo1.SelectedValue = "TerryImages.star2";
-            }
+            LoadSettings();
 
             Console.WriteLine(string.Format("{0} images; {1} transforms", panWrapper.Images.Count, panWrapper.Transforms.Count));
 
@@ -137,6 +113,28 @@ namespace Terry
             }
         }
 
+        private FrameworkElement AddTransformPanel(int insertAt)
+        {
+            FrameworkElement newpanel = CloneModel(myImageXaml);
+            designerPanel.Children.Insert(insertAt+2, newpanel);
+            (newpanel.FindName("AddTransform") as Button).Click += AddTransform_Click;
+            (newpanel.FindName("RemoveTransform") as Button).Click += RemoveTransform_Click;
+            ComboBox transformCombo = (ComboBox)newpanel.FindName("transformCombo1");
+            transformCombo.SelectionChanged += TransformCombo1_SelectionChanged;
+            transformCombo.ItemsSource = panWrapper.Transforms;
+            myTransformCombos.Insert(insertAt, transformCombo);
+            ObservableCollection<SliderAttribute> transformAttributes = new ObservableCollection<SliderAttribute>();
+            ((ListView)newpanel.FindName("transformSliderList")).ItemsSource = transformAttributes;
+            myAttributes.Insert(insertAt+1, transformAttributes);
+            return newpanel;
+        }
+
+        private void RemoveTransformPanel(int at)
+        {
+            designerPanel.Children.RemoveAt(at+2);
+            myTransformCombos.RemoveAt(at);
+            myAttributes.RemoveAt(at+1);
+        }
         
         public void Recalculate()
         {
@@ -256,14 +254,12 @@ namespace Terry
 
         }
 
-        private FrameworkElement CloneModel(FrameworkElement input)
+        private FrameworkElement CloneModel(string xaml)
         {
-            string gridXaml = XamlWriter.Save(input);
-            //gridXaml.Replace("<Label>Image:</Label>", "<Label>Transform:</Label>");
-            gridXaml = gridXaml.Replace("Image", "Transform");
-            gridXaml = gridXaml.Replace("image", "transform");
-            gridXaml = gridXaml.Replace("GUID", Guid.NewGuid().ToString());
-            StringReader stringReader = new StringReader(gridXaml);
+            xaml = xaml.Replace("Image", "Transform");
+            xaml = xaml.Replace("image", "transform");
+            xaml = xaml.Replace("GUID", Guid.NewGuid().ToString());
+            StringReader stringReader = new StringReader(xaml);
             XmlReader xmlReader = XmlReader.Create(stringReader);
             FrameworkElement newModel = (FrameworkElement)XamlReader.Load(xmlReader);
             return newModel;
@@ -319,16 +315,16 @@ namespace Terry
 
                     List<SliderAttribute> sliders = DoSliders(myImageName, myAttributes[0]);
                     myImageFn = (FSharpFunc<Pan.Point, Pan.Color>)panWrapper.GetImageFunction(myImageName, sliders);
-                    myImageFn = (FSharpFunc<Pan.Point, Pan.Color>)panWrapper.StandardTransforms(
-                        myImageFn, imageSizeSlider.Value, imageRotateSlider.Value*36, imageXSlider.Value, imageYSlider.Value);
 
-                    if (myTransformName != panWrapper.None && !string.IsNullOrEmpty(myTransformName))
+                    System.Diagnostics.Debug.Assert(myTransformCombos.Count+1 == myAttributes.Count);
+                    for (int i = 0; i < myTransformCombos.Count; ++i)
                     {
-                        sliders = DoSliders(myTransformName, myAttributes[1]);
-                        myImageFn = panWrapper.GetTransformFunction(myTransformName, myImageFn, sliders);
-                        myImageFn = (FSharpFunc<Pan.Point, Pan.Color>)panWrapper.StandardTransforms(
-                            myImageFn, transformStandardSliders[0].Value, transformStandardSliders[1].Value * 36,
-                            -transformStandardSliders[2].Value, -transformStandardSliders[3].Value);
+                        string name = (string)myTransformCombos[i].SelectedValue;
+                        if (name != panWrapper.None && !string.IsNullOrEmpty(name))
+                        {
+                            sliders = DoSliders(name, myAttributes[i+1]);
+                            myImageFn = panWrapper.GetTransformFunction(name, myImageFn, sliders);
+                        }
                     }
 
                     Recalculate();
@@ -336,7 +332,9 @@ namespace Terry
 
             }
             catch(Exception)
-            {}
+            {
+                Recalculate();
+            }
 
         }
 
@@ -376,17 +374,51 @@ namespace Terry
             myImageName = e.AddedItems[0] as string;
             minstep = 4;    //reset it
             SetImage();
-            RegistryKey k = Registry.CurrentUser.CreateSubKey("Software\\Terry\\PanBrowser");
-            k.SetValue("image", myImageName);
         }
 
         private void TransformCombo1_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            myTransformName = e.AddedItems[0] as string;
             minstep = 4;    //reset it
             SetImage();
+        }
+
+        private void LoadSettings()
+        {
+            RegistryKey k = Registry.CurrentUser.OpenSubKey("Software\\Terry\\PanBrowser", true);
+            if (k != null)
+            {
+                imageCombo1.SelectedValue = k.GetValue("image", panWrapper.Images[0]);
+                int i = 0, panels=0;
+                while (k.GetValue("transform" + i.ToString(), null) != null)
+                {
+                    object transform = k.GetValue("transform" + i.ToString(), null);
+                    if (transform != null && transform as string != panWrapper.None)
+                    {
+                        FrameworkElement panel = AddTransformPanel(panels);
+                        (panel.FindName("transformCombo1") as ComboBox).SelectedValue = transform;
+                        panels++;
+                    }
+                    i++;
+                }
+            }
+            if (imageCombo1.SelectedIndex == -1)
+            {
+                imageCombo1.SelectedValue = "TerryImages.bumpSwirl";
+                myTransformCombos[0].SelectedValue = "TerryImages.star2";
+            }
+            SetImage();
+        }
+
+        private void SaveSettings()
+        {
             RegistryKey k = Registry.CurrentUser.CreateSubKey("Software\\Terry\\PanBrowser");
-            k.SetValue("transform", myTransformName);
+            k.SetValue("image", myImageName);
+            int i;
+            for (i = 0; i < myTransformCombos.Count; ++i)
+                k.SetValue("transform" + i.ToString(),
+                    myTransformCombos[i].SelectedValue == null ? panWrapper.None : (string)myTransformCombos[i].SelectedValue);
+            if(k.GetValue("transform" + i.ToString(), null)!=null)
+                k.DeleteValue("transform" + i.ToString());
         }
 
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -398,7 +430,7 @@ namespace Terry
 
         private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if ((string)((Slider)sender).Tag == "Size" && brill != null)
+            if ((string)(sender as Slider).Tag == "Size" && brill != null)
             {
                 brill.SetSize(e.NewValue);
             }
@@ -430,10 +462,6 @@ namespace Terry
 
         private void Window_MouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
         {
-            //if (sizeSliderControl==null)
-            //    sizeSliderControl = VisualTreeHelperExtensions.FindDescendent<Slider>(imageSliderList);
-            imageSizeSlider.Value *= Math.Pow( 1.1, e.Delta / 100);
-
         }
 
         private void PlayButton3D_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -500,6 +528,31 @@ namespace Terry
                 sliders[0].Bump();
                 SetImage();
             }
+        }
+
+        private void AddTransform_Click(object sender, RoutedEventArgs e)
+        {
+            ComboBox combo = (ComboBox)((FrameworkElement)(((FrameworkElement)sender).Parent)).FindName("transformCombo1");
+            int index = myTransformCombos.FindIndex( delegate(ComboBox b){ return b==combo; } );
+            AddTransformPanel(index+1);
+        }
+
+        private Predicate<ComboBox> Predicate<T1>(ComboBox combo)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void RemoveTransform_Click(object sender, RoutedEventArgs e)
+        {
+            ComboBox combo = (ComboBox)((FrameworkElement)(((FrameworkElement)sender).Parent)).FindName("transformCombo1");
+            int index = myTransformCombos.FindIndex(delegate(ComboBox b) { return b == combo; });
+            RemoveTransformPanel(index);
+            SetImage();
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            SaveSettings();
         }
     }
 }

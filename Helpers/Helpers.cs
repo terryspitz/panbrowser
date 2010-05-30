@@ -28,6 +28,10 @@ namespace Terry
         private static string myCachedText;
         [ThreadStaticAttribute]
         private static Bitmap myCacheBitmap;
+        [ThreadStaticAttribute]
+        private static string myCachedFilename;
+        [ThreadStaticAttribute]
+        private static Bitmap myCacheBitmap2;
 
         private static Helpers myLock = new Helpers();
 
@@ -64,13 +68,10 @@ namespace Terry
                     }
                 }
             }
-            //scale to unit width
-            int i = (int)(x * (myCacheBitmap.Width - 1));
-            int j = Math.Max(0, myCacheBitmap.Height - 1 - (int)(y * (myCacheBitmap.Width - 1)));
-
-            //else scale to unit height
-            //int i = Math.Min(myCacheBitmap.Width-1, (int)(x * (myCacheBitmap.Height- 1)));
-            //int j = Math.Max(0, (int)(myCacheBitmap.Height - 1 - y * (myCacheBitmap.Height - 1)));
+            //scale to fit
+            int max = Math.Max(myCacheBitmap.Height, myCacheBitmap.Width);
+            int i = Math.Min((int)(x*max), myCacheBitmap.Width-1);
+            int j = Math.Max(0, myCacheBitmap.Height-1 - (int)(y*max));
             return myCacheBitmap.GetPixel(i, j).R > 0;
 #else
             lock (myLock)
@@ -102,6 +103,31 @@ namespace Terry
                 return myBuffer[myBitsPerPixel/8 * ( (int)(x * (myWidth-1)) + myWidth * Math.Min(myHeight - 1, (int)(y * (myWidth/*not height*/ - 1))))] > 0;  
 #endif
         }
-    }
 
+        public static Color ImagePoint(string filename, double x, double y)
+        {
+            if (double.IsNaN(x) || double.IsNaN(y) || x < 0 || y < 0 || y >= 1 || x >= 1)
+                return System.Drawing.Color.Black;
+            if (filename != myCachedFilename)
+            {
+                lock (myLock)
+                {
+                    if (filename != myCachedFilename && !string.IsNullOrEmpty(filename))
+                    {
+                        myCachedFilename = filename;
+                        myCacheBitmap2 = new Bitmap(filename);
+                    }
+                }
+            }
+            //scale to unit width
+            int i = (int)(x * (myCacheBitmap2.Width - 1));
+            int j = Math.Max(0, myCacheBitmap2.Height - 1 - (int)(y * (myCacheBitmap2.Width - 1)));
+
+            //else scale to unit height
+            //int i = Math.Min(myCacheBitmap2.Width-1, (int)(x * (myCacheBitmap2.Height- 1)));
+            //int j = Math.Max(0, (int)(myCacheBitmap2.Height - 1 - y * (myCacheBitmap2.Height - 1)));
+            return myCacheBitmap2.GetPixel(i, j);
+        }
+
+    }
 }

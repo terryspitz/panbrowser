@@ -4,7 +4,7 @@
     xmlns:c="clr-namespace:Terry"
     xmlns:b="clr-namespace:Terry;assembly=BrillWpf"
     Title="Terry's PanBrowser" Height="400" Width="700" 
-        Loaded="Window_Loaded" SizeChanged="Window_SizeChanged" MouseWheel="Window_MouseWheel" KeyUp="Window_KeyUp">
+        Loaded="Window_Loaded" SizeChanged="Window_SizeChanged" MouseWheel="Window_MouseWheel" KeyUp="Window_KeyUp" Closing="Window_Closing">
     
     <Window.Resources>
 
@@ -58,21 +58,20 @@
             <TextBlock Margin="5,0,0,0" HorizontalAlignment="Right"><Hyperlink Name="Save" Click="Save_Click">Save Image</Hyperlink></TextBlock>
             <Border Name="imagecontrols" Margin="2">
                 <StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="2">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition Width="25" />
+                            <ColumnDefinition Width="25" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal" Margin="2">
                         <Label>Image:</Label>
-                        <ComboBox Name="imageCombo1" HorizontalAlignment="Stretch" SelectionChanged="imageCombo1_SelectionChanged" />
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="2">
-                        <Label>Size:</Label>
-                        <Slider Height="24" Name="imageSizeSlider" Width="30" ValueChanged="Slider_ValueChanged" Minimum="-10" />
-                        <Label>Rotate:</Label>
-                        <Slider Height="24" Name="imageRotateSlider" Width="30" ValueChanged="Slider_ValueChanged" Minimum="-10"/>
-                        <Label>X:</Label>
-                        <Slider Height="24" Name="imageXSlider" Width="30" ValueChanged="Slider_ValueChanged" Minimum="-10"/>
-                        <Label>Y:</Label>
-                        <Slider Height="24" Name="imageYSlider" Width="30" ValueChanged="Slider_ValueChanged" Minimum="-10"/>
-                    </StackPanel>
-                    <ListView Name="imageSliderList" MinWidth="50" Margin="2">
+                        <ComboBox Name="imageCombo1" HorizontalAlignment="Stretch" SelectionChanged="imageCombo1_SelectionChanged" Height="23" Width="124" Background="White" />
+                        </StackPanel>
+                        <Button Content="-" Height="23" Name="RemoveTransform" Width="23" Grid.Column="1" Background="White" ToolTip="Remove Transform" Click="RemoveTransform_Click" Tag="0" FontWeight="Bold" />
+                        <Button Content="+" Height="23" Name="AddTransform" Width="23" Grid.Column="2" Background="White" ToolTip="Add Transform" Click="AddTransform_Click" Tag="0" FontWeight="Bold" />
+                    </Grid>
+                <ListView Name="imageSliderList" MinWidth="50" Margin="2">
                         <ListView.View>
                             <GridView>
                                 <!-- <GridViewColumn Header="Controls" CellTemplate="{StaticResource SliderTemplate}"/> -->
