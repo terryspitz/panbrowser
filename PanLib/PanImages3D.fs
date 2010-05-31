@@ -9,7 +9,7 @@ open Pan
 
 let Ball (p: Vector3D) = 1.0 / p.LengthSquared
 
-let time = ("Time", 0, 20, 0)
+let time = ("Time", 0, 20, 1)
 let surface = ("Isosurface level", 0.0, 2.0, 0.8)
     
 let Balls surface time (p: Vector3D) =
@@ -27,10 +27,12 @@ let applyPanTransformToXY trans (v : Vector3D) =
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Simple balls and transforms
 
-let invradiusarg = ("Invert radius", 0.01, 100.0, 20.0)
-let invert3D invradiusarg = applyPanTransformToXY (radialInvert invradiusarg)
+let invradiusarg = ("Invert radius", 0.4, 3.0, 1.0)
+let invert3D invradiusarg (v : Vector3D) = 
+    let vv = v + Vector3D(0.2,0.0,0.0)
+    Vector3D.Multiply( v, (invradiusarg / vv.Length / vv.Length))
 let invertBall invradiusarg v = if Ball v <1.0 then  1.0/ (Ball (invert3D invradiusarg v)) else 0.0
-let invertBalls invradiusarg surface time v = 1.0 / ((Balls surface time) (invert3D invradiusarg v))
+let invertBalls time invradiusarg surface v = 1.0 / ((Balls surface time) (invert3D invradiusarg v))
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Caustic 
@@ -49,7 +51,7 @@ let rec MandInner x y i i2 j j2 iter maxiter =
     let temp2 = (2.0 * i * j + y) in
         MandInner x y temp temp2 (temp*temp) (temp2*temp2) (iter+1) maxiter
 
-let maxiter = ("Max Iterations", 2, 200, 100)
+let maxiter = ("Max Iterations", 20, 200, 100)
 
 let StaticMandlebrot maxiter (v : Vector3D) = 
     //crop to sphere

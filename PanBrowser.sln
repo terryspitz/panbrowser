@@ -6,6 +6,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrillWpf", "Brill\BrillWpf.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pan3D", "Pan3D\Pan3D.csproj", "{2D7AB553-EBE6-42D6-B743-48004614EA6A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PanBrowser2", "PanBrowser2\PanBrowser2.csproj", "{711885B3-60C4-440F-966A-65386D052270}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PanLib", "PanLib\PanLib.fsproj", "{70C2822E-4DD3-4031-B017-B43BB35EBB1E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +56,26 @@ Global
 		{2D7AB553-EBE6-42D6-B743-48004614EA6A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{2D7AB553-EBE6-42D6-B743-48004614EA6A}.Release|Win32.ActiveCfg = Release|Any CPU
 		{2D7AB553-EBE6-42D6-B743-48004614EA6A}.Release|Win32.Build.0 = Release|Any CPU
+		{711885B3-60C4-440F-966A-65386D052270}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{711885B3-60C4-440F-966A-65386D052270}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{711885B3-60C4-440F-966A-65386D052270}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{711885B3-60C4-440F-966A-65386D052270}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{711885B3-60C4-440F-966A-65386D052270}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{711885B3-60C4-440F-966A-65386D052270}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{711885B3-60C4-440F-966A-65386D052270}.Release|Any CPU.Build.0 = Release|Any CPU
+		{711885B3-60C4-440F-966A-65386D052270}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{711885B3-60C4-440F-966A-65386D052270}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{711885B3-60C4-440F-966A-65386D052270}.Release|Win32.ActiveCfg = Release|Any CPU
+		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{70C2822E-4DD3-4031-B017-B43BB35EBB1E}.Release|Win32.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

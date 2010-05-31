@@ -150,7 +150,7 @@ let showAngle startAng p =
     let (r, th) = toPolar p
     in th<startAng
 
-let starP (points:int) startAng = polarTransform (fun (r, th) -> (r, -(mapToRange th (twopi/(float)points)-startAng) ) )
+let starP (points:int) startAng = polarTransform (fun (r, th) -> (r, (mapToRange th (twopi/(float)points)-startAng) ) )
 
 let star2 points startAng image = 
     lerpI (canvas 0.5)
@@ -181,16 +181,15 @@ let blur image =
 let time = ("Time", 0.0, 20.0, 0.0)
 let prescale = ("Prescale", 0.0, 5.0, 1.0)
 let postscale = ("Postscale", 0.0, 1.0, 0.2)
-let bumpArg = ("Bump", 0.0, 2.0, 0.2)
+let bumpArg = ("Bump", 0.0, 0.5, 0.1)
 
 let caustic time prescale postscale bumpArg 
-    c00 c01 c10 c11
+    c01 c10 c11
     (p : Point) = 
     let speed = 0.02
     let wave i j x y = cos (Math.PI * 2.0 * ((x + speed * time) * (double)i + (y + speed * time) * (double)j))
     let WaveHeight x y = 
-        (c00+0.5) * (wave 0 0 x y)
-        + (c01+0.5) * (wave 0 1 x y)
+        (c01+0.5) * (wave 0 1 x y)
         + (c10+0.5) * (wave 1 0 x y)
         + (c11+0.5) * (wave 1 1 x y)
     let dx = postscale * (WaveHeight (p.x * prescale) (p.y * prescale) - WaveHeight ((p.x + bumpArg) * prescale) (p.y * prescale) )
@@ -212,8 +211,8 @@ let timestable p =
 //where panbrowser gets a mention!
 
 let escherSquare p =
-    let xx = log (1.0 / (2.0-abs p.x*2.0))
-    let yy = log (1.0 / (2.0-abs p.y*2.0))
+    let xx = log (1.0 / (2.0-abs p.x*1.5)) / log 2.0
+    let yy = log (1.0 / (2.0-abs p.y*1.5)) / log 2.0
     in
     { x= mapTo01 xx; y= mapTo01 yy }
 
@@ -228,3 +227,20 @@ let cycle p =
             { x = p.y; y= -p.x }  
         else
             { x = -p.x; y= -p.y }  
+
+type Line = { origin: Point; dir: Point }
+
+
+let triangle p =
+    let inhalfplane line p = (dot (subp p line.origin) (perp line.dir)) > 0.0
+    let p1={x=0.25; y=0.25}
+    let p2={x=0.75; y=0.25}
+    let p3={x=0.5; y=0.75}
+    let toline p1 p2 = { origin=p1; dir= subp p1 p2 }
+    let line1 = toline p1 p2
+    let line2 = toline p2 p3
+    let line3 = toline p3 p1
+    in
+        inhalfplane line1 p &&
+        inhalfplane line2 p &&
+        inhalfplane line3 p 

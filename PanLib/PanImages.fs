@@ -19,6 +19,8 @@ type Image<'a> = Point -> 'a    //support bool, float or Color
 let toPoint xx yy = { x=xx; y=yy; }
 let addp p1 p2 = { x=p1.x+p2.x; y=p1.y+p2.y}
 let subp p1 p2 = { x=p1.x-p2.x; y=p1.y-p2.y }
+let dot p1 p2 = p1.x*p2.x + p1.y*p2.y
+let perp p1 = { x=p1.y; y= -p1.x }
 
 (* --- bool images --- *)
 
@@ -117,7 +119,7 @@ let bwImage imgB = condC imgB (canvas black) (canvas white)
 let byImage imgB  = condC imgB (canvas blue) (canvas yellow)
 
 //try it like this
-//let bwunixbox = bwImage unitbox
+let box im = condC unitbox im (canvas white)
 
 let bilerpBRBW = condC unitbox (bilerpC black red blue white) (canvas white)
 
@@ -228,7 +230,7 @@ let nestedLogSquares p = even (int  (log (max (abs p.x) (abs p.y) )))
 (* ----------- Pictures and Text from Pan Samples -------------*)
 
 let text textarg p = (Terry.Helpers.TextPoint(textarg, p.x, p.y) )
-let textarg = ("Text", "pan rules ok...")
+let textarg = ("Text", "pan")
 
 let tiletext textarg = 
     //scaleXY 1.0 0.5 
@@ -237,8 +239,6 @@ let tiletext textarg =
         (text textarg)
     //)
     ))
-//let inverttext = radialInvert tiletext
-let textbox textarg = condC (text textarg) (canvas white) (byImage unitbox)
 
 let circleTranformPolar polar = 
     {x=snd polar % System.Math.PI; y= fst polar % System.Math.PI}

@@ -124,7 +124,7 @@ namespace Terry
             transformCombo.ItemsSource = panWrapper.Transforms;
             myTransformCombos.Insert(insertAt, transformCombo);
             ObservableCollection<SliderAttribute> transformAttributes = new ObservableCollection<SliderAttribute>();
-            ((ListView)newpanel.FindName("transformSliderList")).ItemsSource = transformAttributes;
+            ((ItemsControl)newpanel.FindName("transformSliderList")).ItemsSource = transformAttributes;
             myAttributes.Insert(insertAt+1, transformAttributes);
             return newpanel;
         }
@@ -273,42 +273,9 @@ namespace Terry
                     return;
                 else if (myImageName == Brill3D || myImageName.StartsWith("Pan3D"))
                 {
-                    if (brill == null)
-                    {
-                        brill = new BrillWpf.BrillDockPanel();
-                        _grid.Children.Add(brill);
-                        Grid.SetColumn(brill, 1);
-                    }
-                    brill.Visibility = Visibility.Visible;
-
-                    if (myImageName.StartsWith("Pan3D"))
-                    {
-                        List<SliderAttribute> sliders = DoSliders(myImageName, myAttributes[0]);
-                        Converter<Vector3D, double> panFn = (FSharpFunc<Vector3D, double>)panWrapper.GetImageFunction(myImageName, sliders);
-                        Sampler sampler = new Sampler(panFn);
-                        sampler.Resolution = 10;
-                        sampler.OnTimerTick(10);
-                        Flags flags = new Flags();
-                        flags.ShowFaces = true;
-                        sampler.Calculate(flags);
-                        CubeRenderer renderer = new CubeRenderer();
-                        RenderData r = renderer.Render(sampler, flags);
-                        brill.SetGeometry(r.Mesh);
-
-                    }
-                    else if (myImageName == Brill3D)
-                    {
-                        if (brillRenderer == null)
-                        {
-                            brillRenderer = new BrillRenderer();
-                            //brillRenderer.Storyboard = _storyboard;
-                            brillRenderer.Init();
-                        }
-                        brill.Fill(brillRenderer);
-                    }
-                    myImageFn = (FSharpFunc<Pan.Point, Pan.Color>)panWrapper.GetImageFunction("Pan.wavyRings", new List<SliderAttribute>());
+                    Set3DImage();
                 }
-                else
+                else //2D image
                 {
                     if(brill!=null)
                         brill.Visibility = Visibility.Hidden;
@@ -336,6 +303,44 @@ namespace Terry
                 Recalculate();
             }
 
+        }
+
+        private void Set3DImage()
+        {
+            if (brill == null)
+            {
+                brill = new BrillWpf.BrillDockPanel();
+                _grid.Children.Add(brill);
+                Grid.SetColumn(brill, 1);
+            }
+            brill.Visibility = Visibility.Visible;
+
+            if (myImageName.StartsWith("Pan3D"))
+            {
+                List<SliderAttribute> sliders = DoSliders(myImageName, myAttributes[0]);
+                Converter<Vector3D, double> panFn = (FSharpFunc<Vector3D, double>)panWrapper.GetImageFunction(myImageName, sliders);
+                Sampler sampler = new Sampler(panFn);
+                sampler.Resolution = 10;
+                sampler.OnTimerTick(10);
+                Flags flags = new Flags();
+                flags.ShowFaces = true;
+                sampler.Calculate(flags);
+                CubeRenderer renderer = new CubeRenderer();
+                RenderData r = renderer.Render(sampler, flags);
+                brill.SetGeometry(r.Mesh);
+
+            }
+            else if (myImageName == Brill3D)
+            {
+                if (brillRenderer == null)
+                {
+                    brillRenderer = new BrillRenderer();
+                    //brillRenderer.Storyboard = _storyboard;
+                    brillRenderer.Init();
+                }
+                brill.Fill(brillRenderer);
+            }
+            myImageFn = (FSharpFunc<Pan.Point, Pan.Color>)panWrapper.GetImageFunction("Pan.wavyRings", new List<SliderAttribute>());
         }
 
         /// <summary>
@@ -535,11 +540,6 @@ namespace Terry
             ComboBox combo = (ComboBox)((FrameworkElement)(((FrameworkElement)sender).Parent)).FindName("transformCombo1");
             int index = myTransformCombos.FindIndex( delegate(ComboBox b){ return b==combo; } );
             AddTransformPanel(index+1);
-        }
-
-        private Predicate<ComboBox> Predicate<T1>(ComboBox combo)
-        {
-            throw new NotImplementedException();
         }
 
         private void RemoveTransform_Click(object sender, RoutedEventArgs e)
