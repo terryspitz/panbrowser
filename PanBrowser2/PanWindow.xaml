@@ -11,40 +11,28 @@
         <DataTemplate DataType="{x:Type c:SliderInt}">
             <StackPanel HorizontalAlignment="Stretch" Orientation="Horizontal">
                 <Label Content="{Binding Name}"></Label>
-                <Slider Width="100" Minimum="{Binding From}" Maximum="{Binding To}" Value="{Binding Val}" Tag="{Binding Name}"
+                <Slider Width="100" Minimum="{Binding From}" Maximum="{Binding To}" Value="{Binding Val, Mode=TwoWay}" Tag="{Binding Name}"
                         HorizontalAlignment="Stretch" ValueChanged="Slider_ValueChanged"
                         SmallChange="1" LargeChange="2"/>
-                <Label>
-                    <Label.Content>
-                        <Binding Path="Val"/>
-                    </Label.Content>
-                </Label>
+                <Label Content="{Binding Path=Val}"/>
             </StackPanel>
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type c:SliderDouble}">
             <StackPanel HorizontalAlignment="Stretch" Orientation="Horizontal">
-                <b:PlayButton3D ClipToBounds="False" Height="25" Width="25" MouseUp="PlayButton3D_MouseUp"/>
                 <Label Content="{Binding Name}"></Label>
-                <Slider Width="100" Minimum="{Binding From}" Maximum="{Binding To}" Value="{Binding Val}" Tag="{Binding Name}" Name="Slider"
+                <Slider Width="100" Minimum="{Binding From}" Maximum="{Binding To}" Value="{Binding Val, Mode=TwoWay}" Tag="{Binding Name}" Name="Slider"
                         HorizontalAlignment="Stretch" ValueChanged="Slider_ValueChanged"
                         SmallChange="0.1" LargeChange="5"/>
-                <Label ContentStringFormat="F2">
-                    <Label.Content>
-                        <Binding Path="Val"/>
-                    </Label.Content>
-                </Label>
+                <Label ContentStringFormat="F2" Content="{Binding Path=Val}"/>
             </StackPanel>
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type c:SliderText}">
             <StackPanel HorizontalAlignment="Stretch" Orientation="Horizontal" Margin="25,0,0,0">
-                <Label Content="{Binding Name}"></Label>
-                <TextBox TextChanged="TextBox_TextChanged" MinWidth="100" Tag="{Binding Name}">
-                    <TextBox.Text>
-                        <Binding Path="Val" UpdateSourceTrigger="PropertyChanged"/>
-                    </TextBox.Text>
-                </TextBox> 
+                <Label Content="{Binding Name}"/>
+                <TextBox TextChanged="TextBox_TextChanged" MinWidth="100" Tag="{Binding Name}"
+                         Text="{Binding Path=Val, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
         </DataTemplate>
     </Window.Resources>
@@ -55,7 +43,12 @@
             <ColumnDefinition Width="452*" />
         </Grid.ColumnDefinitions>
         <StackPanel Name="designerPanel" Margin="5">
-            <TextBlock Margin="5,0,0,0" HorizontalAlignment="Right"><Hyperlink Name="Save" Click="Save_Click">Save Image</Hyperlink></TextBlock>
+            <StackPanel Orientation="Horizontal">
+                <b:PlayButton3D Name="play" ClipToBounds="False" Height="25" Width="25" MouseUp="PlayButton3D_MouseUp"/>
+                <b:PauseButton3D Name="pause" Visibility="Collapsed" ClipToBounds="False" Height="25" Width="25" MouseUp="PauseButton3D_MouseUp"/>
+                <TextBlock Margin="5,0,0,0"><Hyperlink Name="Screensaver" Click="Screensaver_Click">Screensaver</Hyperlink></TextBlock>
+                <TextBlock Margin="5,0,0,0"><Hyperlink Name="Save" Click="Save_Click">Save Image</Hyperlink></TextBlock>
+            </StackPanel>
             <Border Name="imagecontrols" Margin="2">
                 <StackPanel>
                     <Grid>

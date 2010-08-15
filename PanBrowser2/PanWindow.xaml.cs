@@ -14,6 +14,7 @@ using System.Xml;
 using System.Windows.Media.Media3D;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
+using System.ComponentModel;
 
 namespace Terry
 {
@@ -38,6 +39,7 @@ namespace Terry
 
         protected BrillWpf.BrillDockPanel brill = null;
         protected BrillRenderer brillRenderer;
+        private GridLength defaultToolWidth;
 
         protected WriteableBitmap bitmapSource;
         protected TimingStore timings = new TimingStore();
@@ -104,13 +106,12 @@ namespace Terry
 
             Console.WriteLine(string.Format("{0} images; {1} transforms", panWrapper.Images.Count, panWrapper.Transforms.Count));
 
-            if(screensaver)
-            {
-                timer = new DispatcherTimer();
-                timer.Tick += new EventHandler(Tick);
-                timer.Interval = TimeSpan.FromMilliseconds(100);
+            timer = new DispatcherTimer();
+            timer.Tick += new EventHandler(Tick);
+            timer.Interval = TimeSpan.FromMilliseconds(100);
+
+            if (screensaver)
                 timer.Start();
-            }
         }
 
         private FrameworkElement AddTransformPanel(int insertAt)
@@ -340,7 +341,8 @@ namespace Terry
                 }
                 brill.Fill(brillRenderer);
             }
-            myImageFn = (FSharpFunc<Pan.Point, Pan.Color>)panWrapper.GetImageFunction("Pan.wavyRings", new List<SliderAttribute>());
+            //myImageFn = (FSharpFunc<Pan.Point, Pan.Color>)panWrapper.GetImageFunction("Pan.wavyRings", new List<SliderAttribute>());
+            myImageFn = null;
         }
 
         /// <summary>
@@ -471,34 +473,19 @@ namespace Terry
 
         private void PlayButton3D_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            object tag = ((UserControl)e.Source).Tag;
-            if (tag is Storyboard)
-            {
-                Storyboard story = tag as Storyboard;
-                if(story.GetCurrentState()==ClockState.Active)
-                    story.Stop();
-                else
-                    story.Begin();
-            }
-            else
-            {
-                Slider s = ((Panel)((UserControl)e.Source).Parent).FindName("Slider") as Slider;
-                DoubleAnimation myDoubleAnimation = new DoubleAnimation();
-                myDoubleAnimation.From = s.Minimum;
-                myDoubleAnimation.To = s.Maximum;
-                myDoubleAnimation.Duration = new Duration(TimeSpan.FromSeconds(20));
-                myDoubleAnimation.AccelerationRatio = 0.2;
-                myDoubleAnimation.DecelerationRatio = 0.2;
-                myDoubleAnimation.RepeatBehavior = RepeatBehavior.Forever;
-                myDoubleAnimation.AutoReverse = true;
-                Storyboard.SetTarget(myDoubleAnimation, s);
-                Storyboard.SetTargetProperty(myDoubleAnimation, new PropertyPath(Slider.ValueProperty));
-
-                Storyboard myStoryboard = new Storyboard();
-                myStoryboard.Children.Add(myDoubleAnimation);
-                myStoryboard.Begin();
-                ((UserControl)e.Source).Tag = myStoryboard;
-            }
+            Play();
+        }
+        private void Play()
+        {
+            timer.Start();
+            play.Visibility = Visibility.Collapsed;
+            pause.Visibility = Visibility.Visible;
+        }
+        private void PauseButton3D_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            timer.Stop();
+            play.Visibility = Visibility.Visible;
+            pause.Visibility = Visibility.Collapsed;
         }
 
         private void Window_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
@@ -520,6 +507,13 @@ namespace Terry
                 else
                     Application.Current.Shutdown();
             }
+            if (e.Key == System.Windows.Input.Key.Escape)
+            {
+                this.WindowState = WindowState.Normal;
+                this.WindowStyle = WindowStyle.SingleBorderWindow;
+                _grid.ColumnDefinitions[0].Width = defaultToolWidth;
+            }
+
         }
 
         private void Tick(object s, EventArgs a)
@@ -527,10 +521,14 @@ namespace Terry
             if (myImageName == null || myImageName==Brill3D)
                 return;
 
-            List<SliderAttribute> sliders = DoSliders(myImageName, myAttributes[0]);
-            if (sliders.Count > 0)
+            foreach (ObservableCollection<SliderAttribute> list in myAttributes)
+                foreach (SliderAttribute slider in list)
+                    slider.Bump();
+
+            //List<SliderAttribute> sliders = DoSliders(myImageName, myAttributes[0]);
+            //if (sliders.Count > 0)
             {
-                sliders[0].Bump();
+                //sliders[0].Bump();
                 SetImage();
             }
         }
@@ -554,5 +552,17 @@ namespace Terry
         {
             SaveSettings();
         }
+
+        private void Screensaver_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Maximized;
+            this.WindowStyle = WindowStyle.None;
+            defaultToolWidth = _grid.ColumnDefinitions[0].Width;
+            _grid.ColumnDefinitions[0].Width = new GridLength(0);
+
+            if (!timer.IsEnabled)
+                Play();
+        }
+
     }
 }

@@ -1,5 +1,6 @@
-﻿
-using System;
+﻿using System;
+using System.ComponentModel;
+
 namespace Terry
 {
 
@@ -9,8 +10,11 @@ namespace Terry
         public SliderAttribute(string name) { Name = name; }
 
         public string Name { get; set; }
-        public object Value { get; set; }
+        protected object _value;
+        public object Value { get { return _value; } }
         virtual public void Bump() { }
+
+        protected bool goingUp = true;
 
         #region IComparable Members
 
@@ -34,35 +38,62 @@ namespace Terry
 
         #endregion
     }
-    public class SliderInt : SliderAttribute
+    public class SliderInt : SliderAttribute, INotifyPropertyChanged
     {
-        public SliderInt(string name, int from, int to, int def) { Name = name; Value = def; From = from; To = to; }
-        public int Val { get { return (int)Value; } set { Value = value; } }
+        public event PropertyChangedEventHandler PropertyChanged;
+        public SliderInt(string name, int from, int to, int def) { Name = name; _value = def; From = from; To = to; }
+        public int Val { 
+            get { return (int)_value; } 
+            set { 
+                _value = value;
+                if (null != this.PropertyChanged)
+                {
+                    PropertyChanged(this, new PropertyChangedEventArgs("Val"));
+                }
+            } 
+        }
         public int From { get; set; }
         public int To { get; set; }
         override public void Bump()
         {
-            Val += Math.Min((To - From) / 10, 1);
-            if (Val > To)
-                Val = From;
+            Val += Math.Min((To - From) / 10, 1) * (goingUp ? 1 : -1);
+            if (Val >= To)
+                goingUp = false;
+            else if(Val <= From)
+                goingUp = true;
+
         }
     }
-    public class SliderText : SliderAttribute
+    public class SliderDouble : SliderAttribute, INotifyPropertyChanged
     {
-        public SliderText(string name, string def) { Name = name; Value = def; }
-        public string Val { get { return (string)Value; } set { Value = value; } }
-    }
-    public class SliderDouble : SliderAttribute
-    {
-        public SliderDouble(string name, double from, double to, double def) { Name = name; Value = def; From = from; To = to; }
-        public double Val { get { return (double)Value; } set { Value = value; } }
+        public event PropertyChangedEventHandler PropertyChanged;
+        public SliderDouble(string name, double from, double to, double def) { Name = name; _value = def; From = from; To = to; }
+        public double Val
+        {
+            get { return (double)_value; }
+            set
+            {
+                _value = value;
+                if (null != this.PropertyChanged)
+                {
+                    PropertyChanged(this, new PropertyChangedEventArgs("Val"));
+                }
+            }
+        }
         public double From { get; set; }
         public double To { get; set; }
         override public void Bump()
         {
-            Val += Math.Min((To - From) / 20, 1);
+            Val += Math.Min((To - From) / 20, 1) * (goingUp ? 1.0 : -1.0);
             if (Val > To)
-                Val = From;
+                goingUp = false;
+            else if (Val < From)
+                goingUp = true;
         }
+    }
+    public class SliderText : SliderAttribute
+    {
+        public SliderText(string name, string def) { Name = name; _value = def; }
+        public string Val { get { return (string)_value; } set { _value = value; } }
     }
 }

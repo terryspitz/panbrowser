@@ -57,7 +57,8 @@ namespace Terry
                         //if (!myBitmaps.TryGetValue(text, out myCacheBitmap))
                         {
                             myCacheBitmap = new Bitmap(1, 1, PixelFormat.Format24bppRgb);
-                            Font font = new Font(FontFamily.GenericSansSerif, 72);
+                            //Font font = new Font(FontFamily.GenericSansSerif, 72, FontStyle.Bold);
+                            Font font = new Font("Cooper Black", 72, FontStyle.Bold);
                             Graphics g = Graphics.FromImage(myCacheBitmap);
                             SizeF size = g.MeasureString(text, font);
                             myCacheBitmap = new Bitmap((int)size.Width, (int)size.Height, PixelFormat.Format24bppRgb);

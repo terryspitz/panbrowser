@@ -45,6 +45,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="PauseButton3D.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="PlayButton3D.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -59,6 +63,9 @@
   <ItemGroup>
     <Compile Include="BrillManager.cs" />
     <Compile Include="BrillRenderer.cs" />
+    <Compile Include="PauseButton3D.xaml.cs">
+      <DependentUpon>PauseButton3D.xaml</DependentUpon>
+    </Compile>
     <Compile Include="EdgeFace.cs" />
     <Compile Include="PlayButton3D.xaml.cs">
       <DependentUpon>PlayButton3D.xaml</DependentUpon>

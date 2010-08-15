@@ -244,3 +244,13 @@ let triangle p =
         inhalfplane line1 p &&
         inhalfplane line2 p &&
         inhalfplane line3 p 
+
+let widtharg = ("line width", 0.0, 30.0, 15.0) 
+let aerotextarg = ("aero text", "aerotali") 
+///inspired by aeropostale decor: combine swirly lines crossing and not cross background text
+let aero aerotextarg widtharg swirlArg mean = 
+    let lines p = ((abs p.y * widtharg) + widtharg % 1.0) < 0.1 
+    in lift3 cond 
+        (vortex swirlArg mean lines) 
+        (lift1 not (translate -1.5 -0.5 (scale 3.0 (text aerotextarg)))) 
+        (vortex swirlArg mean (translate 0.0 (0.5/widtharg) lines))
