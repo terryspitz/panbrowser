@@ -34,8 +34,9 @@ let evenF x = (mapToRange x 2.0) <1.0
 let odd x = (x % 2) <>0
 let checker p = even (int (floor p.x) + int (floor p.y))
 let stripes p = evenF p.x
-let tileP p = { x= mapTo01 p.x; y= mapTo01 p.y }
-let tile im = im << tileP
+let tile01 p = { x= mapTo01 p.x; y= mapTo01 p.y }
+let tile im = im << tile01
+let tileX p = { x= mapTo01 p.x; y= p.y }
 
 let tileSmoothP p = 
     let map x = if (even (int x)) then mapTo01 x else 1.0 - mapTo01 x
@@ -167,6 +168,8 @@ let swirl1 r p = rotateP (log ((distO p)+1e-6) * r / 5.0) p
 let swirl2 r p = rotateP (log ((distO p)+1e-6) * r / 5.0) p
 let swirl3 swirlArg = (fun p -> rotateP ((exp -(pown (distO p) 1)) * (swirlArg/ (float)5.0)) p)
 
+let tileOrigin = tile (translateP -0.5 -0.5)
+
 let swirlArg = ("Swirl",-20.0, 20.0, 1.0)
 
 //should be: let swirlVstrip = swirl ((float )(getSlider "swirl" -10 10 10)) vstrip )    but the compiler precaches the silder value
@@ -174,7 +177,7 @@ let swirlArg = ("Swirl",-20.0, 20.0, 1.0)
 
 let unitCircle p = distO p < 1.0
 let unitboxCentered = translate -0.5 -0.5 unitbox
-let tileDisc = tile (translate 0.5 0.5 (scale 0.5 unitCircle))
+let disc = translate 0.5 0.5 (scale 0.5 unitCircle)
 let tilebox = tile (scale 0.9 unitbox)
 
 
@@ -194,32 +197,10 @@ let radialInvert invradiusarg =
 
 let invradiusarg = ("Invert radius", 0.01, 10.0, 1.0)
 
-//let radialInvertT = transformImage radialInvertP
-//let radialInvertChecker = radialInvert checker
-//let radialInvertVStrip = radialInvert vstrip
-
-//flowers by terry: inspired by pic @ http://www.codeproject.com/KB/WPF/WPFJoshSmith.aspx
-let petals = ("Petals", 1, 30, 5)
-let innerRadius = ("Inner Radius", 0, 5, 1)
-let outerRadius = ("Outer Radius", 0, 5, 2)
-
-let flowerR petals innerRadius outerRadius (r, th) =
-    (r/((outerRadius-innerRadius)/2.0 * sin (th * (float)petals) + (innerRadius + outerRadius)/2.0), th)
-
-let flowerBool petals innerRadius outerRadius p = 
-    let disc (r,th) = r<1.0 in
-    disc (flowerR petals innerRadius outerRadius  (toPolar p))
-let flowerFloat petals innerRadius outerRadius p = 
-    fst (flowerR petals innerRadius outerRadius (toPolar p))
-
-let flowerTransform petals innerRadius outerRadius = polarTransform (flowerR petals innerRadius outerRadius )
-let flowerTileTransform petals innerRadius outerRadius = tile (flowerTransform petals innerRadius outerRadius)
-let flowerTileDisc petals innerRadius outerRadius = tileDisc << (flowerTransform petals innerRadius outerRadius )
-
 let radToPoint (r, th) = { x=th; y=r; }
 let pointToRad p = (p.x, p.y)
 let radTransform p = radToPoint (toPolar p)
-let flowerTile2 = tileDisc << radTransform
+let flowerTile2 = tile disc << radTransform
 
 (* ----------- from the Pan Viewer demo ------------- *)  
 
@@ -245,8 +226,11 @@ let circleTranformPolar polar =
 
 let circleTranform p = circleTranformPolar (toPolar p)
 
-let spiral swirlArg p = (fst p + (((swirlArg * snd p) % System.Math.PI)/System.Math.PI), snd p)
-let spiralTranform swirlArg p = circleTranformPolar (spiral swirlArg (toPolar p))
+let spiralTranform swirlArg p = 
+    let spiral swirlArg p = 
+        let (r, th) = toPolar p in
+        (r + (((swirlArg * th) % Math.PI)/Math.PI), th)
+    in circleTranformPolar (spiral swirlArg p)
 
 let textCircles textarg = 
     tile ( translate 0.5 0.5

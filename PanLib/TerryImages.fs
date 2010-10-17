@@ -79,18 +79,12 @@ let mandlebrot xx yy iterations p =
 //------------------------------------------------------------
 //dots, terry aug-2009, inspired by painting tali's room
 //------------------------------------------------------------
-let dots = 
-    let overwrite = lift2 overwriteC
-    let translateScaleColourDiscOver x y s col under = overwrite (translate x y (scale s (condC unitCircle col (canvas invisible)))) under in
-    tile
-        (translateScaleColourDiscOver 0.2 0.2 0.10 (canvas (intToRainbow 1))
-        (translateScaleColourDiscOver 0.75 0.3 0.20 (canvas (intToRainbow 2))
-        (translateScaleColourDiscOver 0.1 0.8 0.05 (canvas (intToRainbow 3))
-        (translateScaleColourDiscOver 0.2 0.3 0.05 (canvas (intToRainbow 4))
-        (translateScaleColourDiscOver 0.35 0.2 0.20 (canvas (intToRainbow 5))
-        (translateScaleColourDiscOver 0.6 0.6 0.10 (canvas (intToRainbow 6))
-            (canvas white))
-        )))))
+let tileInColour boolIm p = 
+    if (boolIm (Pan.tileOrigin p)) then 
+        {r=mapTo01 (floor(p.x)/3.0); g=mapTo01 (floor(p.y)/5.0); b=mapTo01 (floor(p.x)/7.0+floor(p.y)/9.0); a= 1.0 } else
+        white
+    
+let dots = tileInColour Pan.unitCircle
         
 (* ----------- other images ------------- *)
 
@@ -254,3 +248,32 @@ let aero aerotextarg widtharg swirlArg mean =
         (vortex swirlArg mean lines) 
         (lift1 not (translate -1.5 -0.5 (scale 3.0 (text aerotextarg)))) 
         (vortex swirlArg mean (translate 0.0 (0.5/widtharg) lines))
+
+///=new spiral, tighter in the middle
+let spiral2 p = 
+    let (r, th) = toPolar p in
+    let rounds = 1.0/r + th/Math.PI*2.0
+    in {x= floor(rounds) + Math.PI*2.0/th ; y = rounds % 1.0 * 4.0}
+
+//flowers by terry: inspired by pic @ http://www.codeproject.com/KB/WPF/WPFJoshSmith.aspx
+let petals = ("Petals", 1, 30, 5)
+let innerRadius = ("Inner Radius", 0, 5, 1)
+let outerRadius = ("Outer Radius", 0, 5, 2)
+
+
+let flowerR petals innerRadius outerRadius (r, th) =
+    (r/((outerRadius-innerRadius)/2.0 * sin (th * (float)petals) + (innerRadius + outerRadius)/2.0), th)
+
+let flower petals innerRadius outerRadius p = 
+    let disc (r,th) = r<1.0 in
+    disc (flowerR petals innerRadius outerRadius  (toPolar p))
+let flowerFloat petals innerRadius outerRadius p = 
+    fst (flowerR petals innerRadius outerRadius (toPolar p))
+let flowerOutline petals innerRadius outerRadius p = 
+    let disc (r,th) = r<1.0 && r>0.8 in
+    disc (flowerR petals innerRadius outerRadius  (toPolar p))
+
+let flowerTransform petals innerRadius outerRadius = polarTransform (flowerR petals innerRadius outerRadius )
+let flowerTileTransform petals innerRadius outerRadius = tile (flowerTransform petals innerRadius outerRadius)
+let flowerTileColour petals = tileInColour (flower petals 0.2 0.4)
+let flowerOTileColour petals = tileInColour (flowerOutline petals 0.2 0.4)
