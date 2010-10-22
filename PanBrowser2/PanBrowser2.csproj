@@ -108,6 +108,10 @@
       <Project>{02099524-600D-4AF8-ABD9-07A600AD5CA2}</Project>
       <Name>BrillWpf</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Helpers\Helpers.csproj">
+      <Project>{4EE13A68-D74E-4A80-87FC-D81AD71B4A26}</Project>
+      <Name>Helpers</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Pan3D\Pan3D.csproj">
       <Project>{2D7AB553-EBE6-42D6-B743-48004614EA6A}</Project>
       <Name>Pan3D</Name>

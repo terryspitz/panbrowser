@@ -17,7 +17,7 @@ namespace Terry
 
         public List<string> Images { get; set; }
         public List<string> Transforms { get; set; }
-        public readonly string None = "---none---";
+        public static readonly string None = "---none---";
 
         public PanWrapper()
         {

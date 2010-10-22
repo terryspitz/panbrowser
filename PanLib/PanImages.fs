@@ -145,7 +145,7 @@ let dy = ("Translate y", -5.0, 5.0, 0.0)
 let sx = ("Scale x", -2.0, 10.0, 5.0)
 let sy = ("Scale y", -2.0, 10.0, 5.0)
 let s = ("Scale", -2.0, 10.0, 5.0)
-let th = ("Rotation", -2.0, 2.0, 0.0)
+let th = ("Rotation", -2.0, 2.0, 1.0)
                         
 type ImageTranform<'a> = (Point -> 'a) -> (Point -> 'a)
 
@@ -164,8 +164,8 @@ let rotate deg           image p = image (rotateP -(deg/360.0*2.0*Math.PI) p)
 
 //try it:
 
-let swirl1 r p = rotateP (log ((distO p)+1e-6) * r / 5.0) p
-let swirl2 r p = rotateP (log ((distO p)+1e-6) * r / 5.0) p
+let swirl1 swirlArg p = rotateP (log ((distO p)+1e-6) * swirlArg / 5.0) p
+let swirl2 swirlArg p = rotateP (log ((distO p)+1e-6) * swirlArg / 5.0) p
 let swirl3 swirlArg = (fun p -> rotateP ((exp -(pown (distO p) 1)) * (swirlArg/ (float)5.0)) p)
 
 let tileOrigin = tile (translateP -0.5 -0.5)

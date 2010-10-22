@@ -3,6 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:c="clr-namespace:Terry"
     xmlns:b="clr-namespace:Terry;assembly=BrillWpf"
+    xmlns:helpers="clr-namespace:AC.AvalonControlsLibrary.Controls;assembly=Helpers"
     Title="Terry's PanBrowser" Height="400" Width="700" 
         Loaded="Window_Loaded" SizeChanged="Window_SizeChanged" MouseWheel="Window_MouseWheel" KeyUp="Window_KeyUp" Closing="Window_Closing">
     
@@ -21,8 +22,9 @@
         <DataTemplate DataType="{x:Type c:SliderDouble}">
             <StackPanel HorizontalAlignment="Stretch" Orientation="Horizontal">
                 <Label Content="{Binding Name}"></Label>
-                <Slider Width="100" Minimum="{Binding From}" Maximum="{Binding To}" Value="{Binding Val, Mode=TwoWay}" Tag="{Binding Name}" Name="Slider"
-                        HorizontalAlignment="Stretch" ValueChanged="Slider_ValueChanged"
+                <Slider Name="Slider" Width="100" HorizontalAlignment="Stretch" 
+                        Minimum="{Binding From}" Maximum="{Binding To}" Value="{Binding Val, Mode=TwoWay}" Tag="{Binding Name}" 
+                        ValueChanged="Slider_ValueChanged"
                         SmallChange="0.1" LargeChange="5"/>
                 <Label ContentStringFormat="F2" Content="{Binding Path=Val}"/>
             </StackPanel>
@@ -35,21 +37,29 @@
                          Text="{Binding Path=Val, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
         </DataTemplate>
+
+        <DataTemplate DataType="{x:Type c:ImageComboData}" x:Key="ImageComboTemplate">
+            <StackPanel Orientation= "Horizontal">
+                <Image Source="{Binding Path=bitmap}"/>
+                <TextBlock Text="{Binding Path=text}" Margin="3"  VerticalAlignment="Center"/>
+            </StackPanel>
+        </DataTemplate>
     </Window.Resources>
     
     <Grid Name="_grid">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="300" />
+            <ColumnDefinition Width="350" />
             <ColumnDefinition Width="452*" />
         </Grid.ColumnDefinitions>
         <StackPanel Name="designerPanel" Margin="5">
             <StackPanel Orientation="Horizontal">
                 <b:PlayButton3D Name="play" ClipToBounds="False" Height="25" Width="25" MouseUp="PlayButton3D_MouseUp"/>
-                <b:PauseButton3D Name="pause" Visibility="Collapsed" ClipToBounds="False" Height="25" Width="25" MouseUp="PauseButton3D_MouseUp"/>
+                <b:PauseButton3D Name="pause" Visibility="Collapsed" ClipToBounds="False" Height="25" Width="25"
+                                 MouseUp="PauseButton3D_MouseUp"/>
                 <TextBlock Margin="5,0,0,0"><Hyperlink Name="Screensaver" Click="Screensaver_Click">Screensaver</Hyperlink></TextBlock>
                 <TextBlock Margin="5,0,0,0"><Hyperlink Name="Save" Click="Save_Click">Save Image</Hyperlink></TextBlock>
             </StackPanel>
-            <Border Name="imagecontrols" Margin="2">
+            <Border Name="panImageControls" Margin="2">
                 <StackPanel>
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -59,13 +69,19 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Orientation="Horizontal" Margin="2">
                             <Label>Image:</Label>
-                            <ComboBox Name="imageCombo1" HorizontalAlignment="Stretch" SelectionChanged="imageCombo1_SelectionChanged"  Background="White" HorizontalContentAlignment="Stretch" />
+                            <ComboBox Name="panImageCombo1" ItemTemplate="{StaticResource ImageComboTemplate}" SelectedValuePath="text"
+                                      SelectionChanged="panImageCombo1_SelectionChanged"  Background="White" 
+                                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" 
+                                      />
                         </StackPanel>
-                        <Button Content="-" Height="23" Name="RemoveTransform" Width="23" Grid.Column="1" Background="White" ToolTip="Remove Transform" Click="RemoveTransform_Click" Tag="0" FontWeight="Bold" />
-                        <Button Content="+" Height="23" Name="AddTransform" Width="23" Grid.Column="2" Background="White" ToolTip="Add Transform" Click="AddTransform_Click" Tag="0" FontWeight="Bold" />
+                        <Button Content="-" Height="23" Name="RemoveTransform" Width="23" Grid.Column="1" Background="White" 
+                                ToolTip="Remove Transform" Click="RemoveTransform_Click" Tag="0" FontWeight="Bold" 
+                                />
+                        <Button Content="+" Height="23" Name="AddTransform" Width="23" Grid.Column="2" Background="White" 
+                                ToolTip="Add Transform" Click="AddTransform_Click" Tag="0" FontWeight="Bold" 
+                                />
                     </Grid>
-                    <ItemsControl Name="imageSliderList" MinWidth="50" Margin="2" HorizontalContentAlignment="Stretch">
-                    </ItemsControl>
+                    <ItemsControl Name="panImageSliderList" MinWidth="50" Margin="2" HorizontalContentAlignment="Stretch"/>
                 </StackPanel>
             </Border>
         </StackPanel>

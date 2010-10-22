@@ -18,6 +18,12 @@ using System.ComponentModel;
 
 namespace Terry
 {
+    public class ImageComboData
+    {
+        public ImageSource bitmap { get; set; }
+        public string text { get; set; }
+    }
+
     /// <summary>
     /// Interaction logic for Window1.xaml
     /// </summary>
@@ -34,7 +40,7 @@ namespace Terry
 
         protected delegate void ShowStatus(string text);
         protected ShowStatus StatusEvent { get; set; }
-        protected PanWrapper panWrapper = new PanWrapper();
+        static protected PanWrapper panWrapper = new PanWrapper();
         protected List<ObservableCollection<SliderAttribute>> myAttributes = new List<ObservableCollection<SliderAttribute>>();
 
         protected BrillWpf.BrillDockPanel brill = null;
@@ -43,6 +49,7 @@ namespace Terry
 
         protected WriteableBitmap bitmapSource;
         protected TimingStore timings = new TimingStore();
+        protected List<ImageComboData> transformsSource;
         
         public bool screensaver = false;
         protected DispatcherTimer timer;
@@ -78,7 +85,6 @@ namespace Terry
             }
         }
 
-
         public PanBrowser()
         {
             InitializeComponent();
@@ -86,19 +92,22 @@ namespace Terry
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            myImageXaml = XamlWriter.Save(panImageControls);
+
             ObservableCollection<SliderAttribute> imageAttributes = new ObservableCollection<SliderAttribute>();
-            imageSliderList.ItemsSource = imageAttributes;
+            panImageSliderList.ItemsSource = imageAttributes;
             myAttributes.Add(imageAttributes);
 
             //clone the basic image combo and controls to create the transforms combo/controls
-            myImageXaml = XamlWriter.Save(imagecontrols);
+            transformsSource = PopulateTransformData();
             AddTransformPanel(0);
 
             //after cloning
             panWrapper.Images.Add(Brill3D);
-            imageCombo1.ItemsSource = panWrapper.Images;
-            RemoveTransform.Visibility = System.Windows.Visibility.Hidden; //not valid for image, only transforms
 
+            panImageCombo1.ItemsSource = PopulateImageData();
+            RemoveTransform.Visibility = System.Windows.Visibility.Hidden; //not valid for image, only 
+            
             bitmapSource = new WriteableBitmap((int)imagePanel.ActualWidth, (int)imagePanel.ActualHeight, 96.0, 96.0, PixelFormats.Rgb24, null);
             bitmap.Source = bitmapSource;
 
@@ -114,20 +123,79 @@ namespace Terry
                 timer.Start();
         }
 
+        private List<ImageComboData> PopulateImageData()
+        {
+            ObservableCollection<SliderAttribute> imageAttributes = new ObservableCollection<SliderAttribute>();
+            List<ImageComboData> images = new List<ImageComboData>();
+            foreach (string imageName in panWrapper.Images)
+            {
+                ImageComboData data = new ImageComboData();
+                data.text = imageName;
+                if (!Is3D(imageName))
+                {
+                    Image image = new Image();
+                    List<SliderAttribute> sliders = DoSliders(imageName, imageAttributes);
+                    FSharpFunc<Pan.Point, Pan.Color> imageFn =
+                        (FSharpFunc<Pan.Point, Pan.Color>)panWrapper.GetImageFunction(imageName, sliders);
+                    DrawStatic(0, 0, 70, 50, 2, imageFn, image, null, null);
+                    data.bitmap = image.Source;
+                }
+                images.Add(data);
+            }
+            return images;
+        }
+
+        private List<ImageComboData> PopulateTransformData()
+        {
+            ObservableCollection<SliderAttribute> imageAttributes = new ObservableCollection<SliderAttribute>();
+            List<SliderAttribute> sliders = DoSliders("Pan.checker", imageAttributes);
+            FSharpFunc<Pan.Point, Pan.Color> imageFn =
+                (FSharpFunc<Pan.Point, Pan.Color>)panWrapper.GetImageFunction("Pan.checker", sliders);
+
+            List<ImageComboData> images = new List<ImageComboData>();
+            foreach (string imageName in panWrapper.Transforms)
+            {
+                ImageComboData data = new ImageComboData();
+                data.text = imageName;
+                if (!Is3D(imageName) && imageName != PanWrapper.None)
+                {
+                    Image image = new Image();
+                    sliders = DoSliders(imageName, imageAttributes);
+                    FSharpFunc<Pan.Point, Pan.Color> transformFn = panWrapper.GetTransformFunction(imageName, imageFn, sliders);
+                    DrawStatic(0, 0, 70, 50, 2, transformFn, image, null, null);
+                    data.bitmap = image.Source;
+                }
+                images.Add(data);
+            }
+            return images;
+        }
+
         private FrameworkElement AddTransformPanel(int insertAt)
         {
             FrameworkElement newpanel = CloneModel(myImageXaml);
             designerPanel.Children.Insert(insertAt+2, newpanel);
             (newpanel.FindName("AddTransform") as Button).Click += AddTransform_Click;
             (newpanel.FindName("RemoveTransform") as Button).Click += RemoveTransform_Click;
-            ComboBox transformCombo = (ComboBox)newpanel.FindName("transformCombo1");
-            transformCombo.SelectionChanged += TransformCombo1_SelectionChanged;
-            transformCombo.ItemsSource = panWrapper.Transforms;
+            ComboBox transformCombo = (ComboBox)newpanel.FindName("panTransformCombo1");
+            transformCombo.SelectionChanged += panTransformCombo1_SelectionChanged;
+            transformCombo.ItemTemplate = panImageCombo1.ItemTemplate;
+            transformCombo.ItemsSource = transformsSource;
             myTransformCombos.Insert(insertAt, transformCombo);
             ObservableCollection<SliderAttribute> transformAttributes = new ObservableCollection<SliderAttribute>();
-            ((ItemsControl)newpanel.FindName("transformSliderList")).ItemsSource = transformAttributes;
+            ((ItemsControl)newpanel.FindName("panTransformSliderList")).ItemsSource = transformAttributes;
             myAttributes.Insert(insertAt+1, transformAttributes);
             return newpanel;
+        }
+
+        private FrameworkElement CloneModel(string xaml)
+        {
+            xaml = xaml.Replace("panImage", "panTransform");
+            xaml = xaml.Replace("Image:", "Transform:");
+            xaml = xaml.Replace("GUID", Guid.NewGuid().ToString());
+            StringReader stringReader = new StringReader(xaml);
+            XmlReader xmlReader = XmlReader.Create(stringReader);
+            FrameworkElement newModel = (FrameworkElement)XamlReader.Load(xmlReader);
+            return newModel;
         }
 
         private void RemoveTransformPanel(int at)
@@ -155,6 +223,7 @@ namespace Terry
 #endif
         }
 
+        delegate bool CancelFn(int r);
         bool IsCancelled(int r)
         {
             return r != myRequestNumber;
@@ -180,71 +249,11 @@ namespace Terry
             }
         }
 
-        protected int Draw(int step, int requestNo, int Width, int Height, int scale)
+        int Draw(int step, int requestNo, int Width, int Height, int scale)
         {
             try
             {
-                Tuple<byte[], int, int, PixelFormat, int, int> result = null;
-                if (myImageFn != null)
-                {
-                    result = DrawImage.drawImageCol(myImageFn, Width, Height, step, scale);
-                }
-                
-                if (IsCancelled(requestNo))   //don't update if new request has been received
-                    return 0;
-
-                if (result != null && result.Item1 != null && result.Item1.Length>0)
-                {
-                    int pixels;
-                    lock (result.Item1)
-                    {
-                        timings.add(result.Item6);
-                        if (bitmap.Dispatcher.Thread == Thread.CurrentThread)
-                        {
-#if !NEW
-                            bitmap.Source = BitmapSource.Create(result.Item2, result.Item3, 96.0, 96.0, result.Item4, null, result.Item1, result.Item5);
-#else
-                            bitmapSource.WritePixels(
-                                new Int32Rect(0, 0, result.Item2, result.Item3), result.Item1, result.Item5, 0
-                                );
-#endif
-                        }
-                        else
-                        {
-                            // dispatch to Main thread
-                            bitmap.Dispatcher.Invoke(
-                                (Action<Tuple<byte[], int, int, PixelFormat, int, int>>)((Tuple<byte[], int, int, PixelFormat, int, int> request) =>
-                                    {
-#if !NEW
-                                        bitmap.Source = BitmapSource.Create(result.Item2, result.Item3, 96.0, 96.0, result.Item4, null, result.Item1, result.Item5);
-#else
-                                        bitmapSource.WritePixels(
-                                            new Int32Rect(0, 0, result.Item2, result.Item3), result.Item1, result.Item5, 0
-                                            );
-#endif
-                                    }
-                                    ), result);
-                        }
-                        pixels = result.Item2* result.Item3;
-                    }
-                    int elapsed = Math.Max(1, result.Item6);
-                    string status= String.Format("{5}: Drew {0} pixels with step \t{4} in \t{1} ms\t{2} pixels/ms\t{3} frames/s",
-                        pixels, elapsed.ToString("n0")
-                        , (pixels / elapsed).ToString("n0")
-                        , (1000d / elapsed).ToString("n2")
-                        ,step
-                        ,"" //,DateTime.Now.ToString("HH:mm:ss.fff")
-                        );
-                    Console.WriteLine(status);
-                    //StatusEvent(status);
-                    return elapsed;
-                }
-                else
-                {
-                    //if(this.InvokeRequired)
-                    //StatusEvent("null image");
-                    return 0;
-                }
+                return DrawStatic(step, requestNo, Width, Height, scale, myImageFn, bitmap, new CancelFn(IsCancelled), timings);
             }
             catch (Exception ex)
             {
@@ -252,27 +261,83 @@ namespace Terry
                     StatusEvent(ex.ToString());
                 return 0;
             }
-
         }
 
-        private FrameworkElement CloneModel(string xaml)
+        static int DrawStatic(int step, int requestNo, int Width, int Height, int scale,
+            FSharpFunc<Pan.Point, Pan.Color> imageFn, Image bitmap, CancelFn cancelled, TimingStore timings)
         {
-            xaml = xaml.Replace("Image", "Transform");
-            xaml = xaml.Replace("image", "transform");
-            xaml = xaml.Replace("GUID", Guid.NewGuid().ToString());
-            StringReader stringReader = new StringReader(xaml);
-            XmlReader xmlReader = XmlReader.Create(stringReader);
-            FrameworkElement newModel = (FrameworkElement)XamlReader.Load(xmlReader);
-            return newModel;
+            Tuple<byte[], int, int, PixelFormat, int, int> result = null;
+            if (imageFn != null)
+            {
+                result = DrawImage.drawImageCol(imageFn, Width, Height, step, scale);
+            }
+
+            if (cancelled != null && cancelled(requestNo))   //don't update if new request has been received
+                return 0;
+
+            if (result != null && result.Item1 != null && result.Item1.Length > 0)
+            {
+                int pixels;
+                lock (result.Item1)
+                {
+                    if (timings != null)
+                        timings.add(result.Item6);
+                    if (bitmap.Dispatcher.Thread == Thread.CurrentThread)
+                    {
+#if !NEW
+                        bitmap.Source = BitmapSource.Create(result.Item2, result.Item3, 96.0, 96.0, result.Item4, null, result.Item1, result.Item5);
+#else
+                        bitmapSource.WritePixels(
+                            new Int32Rect(0, 0, result.Item2, result.Item3), result.Item1, result.Item5, 0
+                            );
+#endif
+                    }
+                    else
+                    {
+                        // dispatch to Main thread
+                        bitmap.Dispatcher.Invoke( (Action<Tuple<byte[], int, int, PixelFormat, int, int>>)
+                            (
+                                (Tuple<byte[], int, int, PixelFormat, int, int> request) =>
+                                {
+#if !NEW
+                                    bitmap.Source = BitmapSource.Create(result.Item2, result.Item3, 96.0, 96.0, result.Item4, null, result.Item1, result.Item5);
+#else
+                                    bitmapSource.WritePixels(
+                                        new Int32Rect(0, 0, result.Item2, result.Item3), result.Item1, result.Item5, 0
+                                        );
+#endif
+                                }
+                            ), result);
+                    }
+                    pixels = result.Item2 * result.Item3;
+                }
+                int elapsed = Math.Max(1, result.Item6);
+                string status = String.Format("{5}: Drew {0} pixels with step \t{4} in \t{1} ms\t{2} pixels/ms\t{3} frames/s",
+                    pixels, elapsed.ToString("n0")
+                    , (pixels / elapsed).ToString("n0")
+                    , (1000d / elapsed).ToString("n2")
+                    , step
+                    , "" //,DateTime.Now.ToString("HH:mm:ss.fff")
+                    );
+                Console.WriteLine(status);
+                //StatusEvent(status);
+                return elapsed;
+            }
+            else
+            {
+                //if(this.InvokeRequired)
+                //StatusEvent("null image");
+                return 0;
+            }
         }
 
         public void SetImage()
         {
+            if (myImageName == null)
+                return;
             try
             {
-                if (myImageName == null)
-                    return;
-                else if (myImageName == Brill3D || myImageName.StartsWith("Pan3D"))
+                if (Is3D(myImageName))
                 {
                     Set3DImage();
                 }
@@ -287,8 +352,8 @@ namespace Terry
                     System.Diagnostics.Debug.Assert(myTransformCombos.Count+1 == myAttributes.Count);
                     for (int i = 0; i < myTransformCombos.Count; ++i)
                     {
-                        string name = (string)myTransformCombos[i].SelectedValue;
-                        if (name != panWrapper.None && !string.IsNullOrEmpty(name))
+                        string name = myTransformCombos[i].SelectedValue as string;
+                        if (name != PanWrapper.None && !string.IsNullOrEmpty(name))
                         {
                             sliders = DoSliders(name, myAttributes[i+1]);
                             myImageFn = panWrapper.GetTransformFunction(name, myImageFn, sliders);
@@ -304,6 +369,11 @@ namespace Terry
                 Recalculate();
             }
 
+        }
+
+        private bool Is3D(string name)
+        {
+            return name == Brill3D || name.StartsWith("Pan3D");
         }
 
         private void Set3DImage()
@@ -351,7 +421,7 @@ namespace Terry
         /// <param name="functionName"></param>
         /// <param name="attributes"></param>
         /// <returns></returns>
-        private List<SliderAttribute> DoSliders(string functionName, ObservableCollection<SliderAttribute> attributes)
+        static private List<SliderAttribute> DoSliders(string functionName, ObservableCollection<SliderAttribute> attributes)
         {
             List<SliderAttribute> sliders = new List<SliderAttribute>();
 
@@ -376,14 +446,14 @@ namespace Terry
             return sliders;
         }
 
-        private void imageCombo1_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void panImageCombo1_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            myImageName = e.AddedItems[0] as string;
+            myImageName = (e.AddedItems[0] as ImageComboData).text;
             minstep = 4;    //reset it
             SetImage();
         }
 
-        private void TransformCombo1_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void panTransformCombo1_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             minstep = 4;    //reset it
             SetImage();
@@ -394,23 +464,24 @@ namespace Terry
             RegistryKey k = Registry.CurrentUser.OpenSubKey("Software\\Terry\\PanBrowser", true);
             if (k != null)
             {
-                imageCombo1.SelectedValue = k.GetValue("image", panWrapper.Images[0]);
+                string name = k.GetValue("image", panWrapper.Images[0]) as string;
+                panImageCombo1.SelectedValue = name;
                 int i = 0, panels=0;
                 while (k.GetValue("transform" + i.ToString(), null) != null)
                 {
                     object transform = k.GetValue("transform" + i.ToString(), null);
-                    if (transform != null && transform as string != panWrapper.None)
+                    if (transform != null && (transform as string) != PanWrapper.None)
                     {
                         FrameworkElement panel = AddTransformPanel(panels);
-                        (panel.FindName("transformCombo1") as ComboBox).SelectedValue = transform;
+                        (panel.FindName("panTransformCombo1") as ComboBox).SelectedValue = transform;
                         panels++;
                     }
                     i++;
                 }
             }
-            if (imageCombo1.SelectedIndex == -1)
+            if (panImageCombo1.SelectedIndex == -1)
             {
-                imageCombo1.SelectedValue = "TerryImages.bumpSwirl";
+                panImageCombo1.SelectedValue = "TerryImages.bumpSwirl";
                 myTransformCombos[0].SelectedValue = "TerryImages.star2";
             }
             SetImage();
@@ -423,7 +494,7 @@ namespace Terry
             int i;
             for (i = 0; i < myTransformCombos.Count; ++i)
                 k.SetValue("transform" + i.ToString(),
-                    myTransformCombos[i].SelectedValue == null ? panWrapper.None : (string)myTransformCombos[i].SelectedValue);
+                    myTransformCombos[i].SelectedValue == null ? PanWrapper.None : (string)myTransformCombos[i].SelectedValue);
             if(k.GetValue("transform" + i.ToString(), null)!=null)
                 k.DeleteValue("transform" + i.ToString());
         }
@@ -431,7 +502,7 @@ namespace Terry
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             //SetImage();
-            minstep = 4;    //reset it
+            minstep = 3;    //reset it
             Recalculate();
         }
 
@@ -456,7 +527,7 @@ namespace Terry
             JpegBitmapEncoder jpg = new JpegBitmapEncoder();
             jpg.Frames.Add(BitmapFrame.Create((BitmapSource)bitmap.Source));
             Microsoft.Win32.SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog();
-            dlg.FileName = imageCombo1.SelectedValue.ToString(); // Default file name
+            dlg.FileName = panImageCombo1.SelectedValue.ToString(); // Default file name
             dlg.DefaultExt = ".jpg"; // Default file extension
             dlg.Filter = "Images (.jpg)|*.jpg"; // Filter files by extension
             Nullable<bool> result = dlg.ShowDialog();
@@ -501,9 +572,9 @@ namespace Terry
             if (screensaver)
             {
                 if (e.Key == System.Windows.Input.Key.Down)
-                    imageCombo1.SelectedIndex = (imageCombo1.SelectedIndex + 1)%imageCombo1.Items.Count;
+                    panImageCombo1.SelectedIndex = (panImageCombo1.SelectedIndex + 1)%panImageCombo1.Items.Count;
                 else if (e.Key == System.Windows.Input.Key.Up)
-                    imageCombo1.SelectedIndex = (imageCombo1.SelectedIndex + imageCombo1.Items.Count -1) % imageCombo1.Items.Count;
+                    panImageCombo1.SelectedIndex = (panImageCombo1.SelectedIndex + panImageCombo1.Items.Count -1) % panImageCombo1.Items.Count;
                 else
                     Application.Current.Shutdown();
             }
@@ -535,14 +606,14 @@ namespace Terry
 
         private void AddTransform_Click(object sender, RoutedEventArgs e)
         {
-            ComboBox combo = (ComboBox)((FrameworkElement)(((FrameworkElement)sender).Parent)).FindName("transformCombo1");
+            ComboBox combo = (ComboBox)((FrameworkElement)(((FrameworkElement)sender).Parent)).FindName("panTransformCombo1");
             int index = myTransformCombos.FindIndex( delegate(ComboBox b){ return b==combo; } );
             AddTransformPanel(index+1);
         }
 
         private void RemoveTransform_Click(object sender, RoutedEventArgs e)
         {
-            ComboBox combo = (ComboBox)((FrameworkElement)(((FrameworkElement)sender).Parent)).FindName("transformCombo1");
+            ComboBox combo = (ComboBox)((FrameworkElement)(((FrameworkElement)sender).Parent)).FindName("panTransformCombo1");
             int index = myTransformCombos.FindIndex(delegate(ComboBox b) { return b == combo; });
             RemoveTransformPanel(index);
             SetImage();

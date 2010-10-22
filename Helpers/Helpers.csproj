@@ -38,6 +38,7 @@
     <Reference Include="PresentationCore">
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
     </Reference>
+    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -49,6 +50,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="3rdParty\Avalon\ExceptionStrings.cs" />
+    <Compile Include="3rdParty\Avalon\RangeSlider.cs" />
     <Compile Include="Caustic.cs" />
     <Compile Include="Helpers.cs" />
   </ItemGroup>
