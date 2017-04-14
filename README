@@ -8,7 +8,7 @@ While at Microsoft Research, Conal Elliott wrote a paper describing Functional I
 || bumpSwirl || another bumpSwirl || star swirl || herringbone with caustic ||
 | ![](Home_Terrys.bumpSwirl.png) | ![](Home_Terrys.bumpSwirl2.png) | ![](Home_Terrys.starSwirl.png) | ![](Home_Terrys.herringbone.png) | 
 || rainbowRings with flower || || ||
-| ![](Home_butterfly or bat.png ) | ![](Home_) | ![](Home_) | ![](Home_) | 
+| ![](Home_butterfly or bat.png ) | |  | | 
 
 ## GUI Features
 Images and Transforms can only be written in the F# source code and compiled, but images and transforms can have parameters varied at runtime and can be composed:
@@ -59,14 +59,14 @@ let radialInvert =
 _See Also: [ExampleImages](ExampleImages); [Sliders](Sliders)_
 
 ## Inspired by
-[http://conal.net/pan/](http://conal.net/pan/)
-[http://www.haskell.org/edsl/pansharp.html](http://www.haskell.org/edsl/pansharp.html)
-Similarly inspired by Conal Elliot, Ken Peril, etc, and with an 'interesting' writing style: [http://users.info.unicaen.fr/~karczma/Work/Clastic_distr/clastic.html](http://users.info.unicaen.fr/~karczma/Work/Clastic_distr/clastic.html) - my challenge is to replicate his great example images in F#/PanBrowser
-[http://blogs.msdn.com/satnam_singh/archive/2010/01/06/an-f-functional-geometry-description-of-escher-s-fish.aspx](http://blogs.msdn.com/satnam_singh/archive/2010/01/06/an-f-functional-geometry-description-of-escher-s-fish.aspx) - Functional Geometry is only slightly different, and this shows an F# example
+- [http://conal.net/pan/](http://conal.net/pan/)
+- [http://www.haskell.org/edsl/pansharp.html](http://www.haskell.org/edsl/pansharp.html)
+- Similarly inspired by Conal Elliot, Ken Peril, etc, and with an 'interesting' writing style: [http://users.info.unicaen.fr/~karczma/Work/Clastic_distr/clastic.html](http://users.info.unicaen.fr/~karczma/Work/Clastic_distr/clastic.html) - my challenge is to replicate his great example images in F#/PanBrowser
+- [http://blogs.msdn.com/satnam_singh/archive/2010/01/06/an-f-functional-geometry-description-of-escher-s-fish.aspx](http://blogs.msdn.com/satnam_singh/archive/2010/01/06/an-f-functional-geometry-description-of-escher-s-fish.aspx) - Functional Geometry is only slightly different, and this shows an F# example
 
 ## Great Graphics sites
-[Greg Egan](http://gregegan.customer.netspace.net.au) - Great hard sci-fi plus graphics demos
-[Ken Perlin](http://mrl.nyu.edu/~perlin/) - professor, graphics guru, demo-writer extraordinaire, star!
-[Craig Ventrella](http://www.ventrella.com/) - graphics demos defying explanation
-[Matrix Ping Pong](http://albinoblacksheep.com/flash/pingpong.php) - so cool, i trust you've seen it already
-[http://www.openprocessing.org](http://www.openprocessing.org) - Visualisation scripting with great examples
+- [Greg Egan](http://gregegan.customer.netspace.net.au) - Great hard sci-fi plus graphics demos
+- [Ken Perlin](http://mrl.nyu.edu/~perlin/) - professor, graphics guru, demo-writer extraordinaire, star!
+- [Craig Ventrella](http://www.ventrella.com/) - graphics demos defying explanation
+- [Matrix Ping Pong](http://albinoblacksheep.com/flash/pingpong.php) - so cool, i trust you've seen it already
+- [http://www.openprocessing.org](http://www.openprocessing.org) - Visualisation scripting with great examples
