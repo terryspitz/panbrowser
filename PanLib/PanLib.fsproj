@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>fs</RootNamespace>
     <AssemblyName>PanLib</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <Name>PanLib</Name>
     <SccProjectName>
     </SccProjectName>
@@ -19,7 +19,7 @@
     </SccAuxPath>
     <SccLocalPath>
     </SccLocalPath>
-    <TargetFSharpCoreVersion>2.3.0.0</TargetFSharpCoreVersion>
+    <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
