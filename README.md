@@ -6,7 +6,7 @@ While at Microsoft Research, Conal Elliott wrote a paper describing Functional I
 | ![](Home_Pan.stripes.png) | ![](Home_Pan.tilebox.png) | ![](Home_Pan.tiletext.png) | ![](Home_rotors.png) |
 | bumpSwirl | another bumpSwirl | star swirl | herringbone with caustic |
 | ![](Home_Terrys.bumpSwirl.png) | ![](Home_Terrys.bumpSwirl2.png) | ![](Home_Terrys.starSwirl.png) | ![](Home_Terrys.herringbone.png) | 
-| rainbowRings with flower | | |
+| rainbowRings with flower | | | | 
 | ![](Home_butterfly or bat.png) | |  | | 
 
 ## GUI Features
@@ -28,7 +28,7 @@ Images and Transforms can only be written in the F# source code and compiled, bu
 ## Example Image Functions
 For example, here's a Mandlebrot set in F#/Pan:
 
-{{ 
+``` 
 //an image is a function that takes a Point (x,y) and returns a bool or Color
 let mandlebrot p =
 	let rec checkMand z i =
@@ -38,12 +38,12 @@ let mandlebrot p =
 		else 
 			checkMand (addp (complex2 z) p) (i+1)  // recurse with z=z^2 + p
 	in checkMand origin 0
-}}
+```
 ![](Home_mand1.png)
 
 And here's how you turn it inside-out:
 
-{{
+```
 let polarTransform xf = toPolar >> xf >> fromPolar
 
 //a Transform is a function that takes an image function and returns a new image function
@@ -51,7 +51,7 @@ let polarTransform xf = toPolar >> xf >> fromPolar
 let radialInvert = 
     let invert (r, th) = ( 1.0/r, th ) in
     transformImage (polarTransform invert)
-}}
+```
 
 ![](Home_mand2.png)
 
