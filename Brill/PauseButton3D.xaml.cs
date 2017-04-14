@@ -9,7 +9,7 @@ using System.Windows;
 namespace Terry
 {
     /// <summary>
-    /// Interaction logic for PlayButton3D.xaml
+    /// Interaction logic for PauseButton3D.xaml
     /// </summary>
     public partial class PauseButton3D : UserControl
     {
