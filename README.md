@@ -2,13 +2,12 @@
 While at Microsoft Research, Conal Elliott wrote a paper describing Functional Images: images and effects created from the application of functions, and christened them Pan.  PanBrowser implements a number of Pan functions in F#, and integrates them into a C# user interface.
 
 ## Gallery
-(sorry, i'm a bit obsessed with the dark/light green theme...)
-|| Stripes with Caustic || boxes with Caustic || tiletext with Caustic || ?? ||
+| Stripes with Caustic | Boxes with Caustic | Tiletext with Caustic | Rotors |
 | ![](Home_Pan.stripes.png) | ![](Home_Pan.tilebox.png) | ![](Home_Pan.tiletext.png) | ![](Home_rotors.png) |
-|| bumpSwirl || another bumpSwirl || star swirl || herringbone with caustic ||
+| bumpSwirl | another bumpSwirl | star swirl | herringbone with caustic |
 | ![](Home_Terrys.bumpSwirl.png) | ![](Home_Terrys.bumpSwirl2.png) | ![](Home_Terrys.starSwirl.png) | ![](Home_Terrys.herringbone.png) | 
-|| rainbowRings with flower || || ||
-| ![](Home_butterfly or bat.png ) | |  | | 
+| rainbowRings with flower | | |
+| ![](Home_butterfly or bat.png) | |  | | 
 
 ## GUI Features
 Images and Transforms can only be written in the F# source code and compiled, but images and transforms can have parameters varied at runtime and can be composed:
