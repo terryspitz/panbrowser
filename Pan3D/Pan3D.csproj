@@ -28,7 +28,7 @@
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>3.5</OldToolsVersion>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <ManifestCertificateThumbprint>3743D146D37CF1A13703CC77E6AA855BF00A59C6</ManifestCertificateThumbprint>
     <ManifestKeyFile>Mand3D_TemporaryKey.pfx</ManifestKeyFile>
